@@ -20,8 +20,8 @@ from sklearn.qda import QDA
 
 pd.options.mode.chained_assignment = None
 
-sample = False
-gridsearch = False
+sample = True
+gridsearch = True
 
 features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY',
             'AGE','MARITAL_STATUS','RANK_GRADE',
@@ -40,15 +40,19 @@ features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY',
             'DIVORCE_WITHIN_2_YEARS','DIVORCE_REMARRIED_WITHIN_2_YEARS','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR',
             'HOUSING_TYPE','HOUSING_GROUP','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2']
 
-goal = 'RESIGNED' # rmb to change your training data column from `label` to `Label`
+goal = 'RESIGNED'
 myid = 'PERID'
 
 # Load data
 if sample:
-    df = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
-    df['is_train'] = (df[myid] % 10) >= 3
-    # df['is_train'] = np.random.uniform(0, 1, len(df)) <= .75
-    train, test = df[df['is_train']==True], df[df['is_train']==False]
+    if gridsearch:
+        train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
+        test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
+    else:
+        df = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
+        df['is_train'] = (df[myid] % 10) >= 3
+        # df['is_train'] = np.random.uniform(0, 1, len(df)) <= .75
+        train, test = df[df['is_train']==True], df[df['is_train']==False]
 else:
     # To run with real data
     train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
@@ -90,33 +94,32 @@ MyNNClassifier = Classifier(
 # Define classifiers
 if sample:
     classifiers = [
-        # KNeighborsClassifier(3),
-        # SVC(kernel="linear", C=0.025, probability=True),
-        # SVC(gamma=2, C=1, probability=True),
-        # RandomForestClassifier()
-        # RandomForestClassifier(max_depth=16, n_estimators=1024, max_features=None),
-        # AdaBoostClassifier(),
-        # GaussianNB(),
-        # LDA(),
-        # QDA(),
-        # MyNNClassifier,
-        # DecisionTreeClassifier(criterion='entropy', min_samples_split=2,
-        #     min_samples_leaf=1, max_depth=5, min_weight_fraction_leaf=0.0,
-        #     max_features=None, random_state=None, max_leaf_nodes=None, class_weight=None),
-        # AdaBoostClassifier(DecisionTreeClassifier(max_depth=16), algorithm="SAMME",n_estimators=200),
-        XGBClassifier(n_estimators=128,subsample=0.4,max_depth=16,min_child_weight=4),
-        XGBClassifier(n_estimators=512,subsample=0.8,max_depth=8,min_child_weight=5),
+        KNeighborsClassifier(3),
+        SVC(kernel="linear", C=0.025, probability=True),
+        SVC(gamma=2, C=1, probability=True),
+        RandomForestClassifier()
+        RandomForestClassifier(max_depth=16, n_estimators=1024, max_features=None),
+        AdaBoostClassifier(),
+        GaussianNB(),
+        LDA(),
+        QDA(),
+        MyNNClassifier,
+        DecisionTreeClassifier(criterion='entropy', min_samples_split=2,
+            min_samples_leaf=1, max_depth=5, min_weight_fraction_leaf=0.0,
+            max_features=None, random_state=None, max_leaf_nodes=None, class_weight=None),
+        AdaBoostClassifier(DecisionTreeClassifier(max_depth=16), algorithm="SAMME",n_estimators=200),
         XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
-        XGBClassifier(n_estimators=128,subsample=1.2,max_depth=16,min_child_weight=3),
-        XGBClassifier(n_estimators=128,subsample=1.4,max_depth=16,min_child_weight=3)
+        XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
+        # XGBClassifier()
     ]
 else:
     classifiers = [# Other methods are underperformed yet take very long training time for this data set
-        # MyNNClassifier1,
-        # MyNNClassifier2,
-        # GradientBoostingClassifier(max_depth=16,n_estimators=1024),
-        # RandomForestClassifier(max_depth=16,n_estimators=1024),
-        XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3)
+        MyNNClassifier1,
+        MyNNClassifier2,
+        GradientBoostingClassifier(max_depth=16,n_estimators=1024),
+        RandomForestClassifier(max_depth=16,n_estimators=1024),
+        XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
+        XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
     ]
 
 # Train
@@ -137,10 +140,10 @@ for classifier in classifiers:
             if (classifier.__class__.__name__ == "XGBClassifier"):
                 print "Attempting GridSearchCV for XGB model"
                 gscv = GridSearchCV(classifier, {
-                    'max_depth': [2, 8, 16, 32],
-                    'n_estimators': [64, 128, 256, 512],
-                    'min_child_weight': [3,5],
-                    'subsample': [0.6,0.8,1,1.2,1.4]},
+                    'max_depth': [1, 2, 5, 8, 10, 16, 25, 32],
+                    'n_estimators': [64, 128, 256, 365, 512, 712, 1024],
+                    'min_child_weight': [1,3,5,7, 9, 11, 13],
+                    'subsample': [0.6,0.8,1,1.2]},
                     verbose=1, n_jobs=2, scoring='log_loss')
             if (classifier.__class__.__name__ == "RandomForestClassifier"):
                 print "Attempting GridSearchCV for RF model"
@@ -166,20 +169,17 @@ for classifier in classifiers:
     print '  -> Training time:', time.time() - start
 # Evaluation and export result
 if sample:
-    # Test results
-    for classifier in classifiers:
-        print classifier.__class__.__name__
-        print 'Log Loss:'
-        print log_loss(test[goal].values, classifier.predict_proba(np.array(test[features])))
-        print 'Accuracy Score:'
-        print accuracy_score(test[goal].values,classifier.predict(np.array(test[features])))
+    if ~gridsearch:
+        for classifier in classifiers:
+            print "===" + classifier.__class__.__name__
+            print 'Log Loss:'
+            print log_loss(test[goal].values, classifier.predict_proba(np.array(test[features])))
 else: # Export result
     count = 0
     for classifier in classifiers:
         count += 1
         if not os.path.exists('result/'):
             os.makedirs('result/')
-        # TODO: fix this shit
         predictions = classifier.predict_proba(np.array(test[features]))
         try: # try to flatten a list that might be flattenable.
             predictions = list(itertools.chain.from_iterable(predictions))
