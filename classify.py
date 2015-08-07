@@ -94,31 +94,33 @@ MyNNClassifier = Classifier(
 # Define classifiers
 if sample:
     classifiers = [
-        KNeighborsClassifier(3),
-        SVC(kernel="linear", C=0.025, probability=True),
-        SVC(gamma=2, C=1, probability=True),
-        RandomForestClassifier()
-        RandomForestClassifier(max_depth=16, n_estimators=1024, max_features=None),
-        AdaBoostClassifier(),
-        GaussianNB(),
-        LDA(),
-        QDA(),
-        MyNNClassifier,
-        DecisionTreeClassifier(criterion='entropy', min_samples_split=2,
-            min_samples_leaf=1, max_depth=5, min_weight_fraction_leaf=0.0,
-            max_features=None, random_state=None, max_leaf_nodes=None, class_weight=None),
-        AdaBoostClassifier(DecisionTreeClassifier(max_depth=16), algorithm="SAMME",n_estimators=200),
-        XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
-        XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
-        # XGBClassifier()
+        # KNeighborsClassifier(3),
+        # SVC(kernel="linear", C=0.025, probability=True),
+        # SVC(gamma=2, C=1, probability=True),
+        # RandomForestClassifier(),
+        # RandomForestClassifier(max_depth=16, n_estimators=1024, max_features=None),
+        # AdaBoostClassifier(),
+        # GaussianNB(),
+        # LDA(),
+        # QDA(),
+        # MyNNClassifier,
+        # DecisionTreeClassifier(criterion='entropy', min_samples_split=2,
+        #     min_samples_leaf=1, max_depth=5, min_weight_fraction_leaf=0.0,
+        #     max_features=None, random_state=None, max_leaf_nodes=None, class_weight=None),
+        # AdaBoostClassifier(DecisionTreeClassifier(max_depth=16), algorithm="SAMME",n_estimators=200),
+        # RandomForestClassifier(max_depth=16, n_estimators=1024, max_features=None),
+        # XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
+        # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
+        XGBClassifier()
     ]
 else:
     classifiers = [# Other methods are underperformed yet take very long training time for this data set
-        MyNNClassifier1,
-        MyNNClassifier2,
-        GradientBoostingClassifier(max_depth=16,n_estimators=1024),
-        RandomForestClassifier(max_depth=16,n_estimators=1024),
-        XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
+        # MyNNClassifier1,
+        # MyNNClassifier2,
+        # GradientBoostingClassifier(max_depth=16,n_estimators=1024),
+        # RandomForestClassifier(max_depth=16,n_estimators=1024),
+        # XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
+        # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7),
         XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
     ]
 
@@ -167,6 +169,7 @@ for classifier in classifiers:
     else:
         classifier.fit(np.array(train[list(features)]), train[goal])
     print '  -> Training time:', time.time() - start
+    # print classifier.feature_importances_
 # Evaluation and export result
 if sample:
     if ~gridsearch:
