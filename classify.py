@@ -20,11 +20,10 @@ from sklearn.qda import QDA
 
 pd.options.mode.chained_assignment = None
 
-sample = True
-gridsearch = True
+sample = False
+gridsearch = False
 
-features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY',
-            'AGE','MARITAL_STATUS','RANK_GRADE',
+features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE',
             'YEARS_IN_GRADE','EMPLOYEE_GROUP','PARENT_SERVICE','SERVICE_SUB_AREA','SERVICE_TYPE','YEARS_OF_SERVICE',
             'VOC','UNIT','NO_OF_KIDS','MIN_CHILD_AGE','AVE_CHILD_AGE','HSP_ESTABLISHMENT','HSP_CERTIFICATE','HSP_CERT_RANK',
             'HSP_CERT_DESC','UPGRADED_LAST_3_YRS','UPGRADED_CERT_3_YRS','UPGRADED_CERT_DESC_3_YRS','MARRIED_WITHIN_2_YEARS',
@@ -33,7 +32,6 @@ features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY',
             'HOUSING_TYPE','HOUSING_GROUP','HOUSING_RANK','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','HOUSE_UPG_DGRD','IPPT_SCORE',
             'PES_SCORE','HOMETOWORKDIST','SVC_INJURY_TYPE','TOT_PERC_INC_LAST_1_YR','BAS_PERC_INC_LAST_1_YR']
 features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY',
-            'MARITAL_STATUS','RANK_GRADE',
             'EMPLOYEE_GROUP','PARENT_SERVICE','SERVICE_SUB_AREA','SERVICE_TYPE',
             'VOC','UNIT','HSP_ESTABLISHMENT','HSP_CERTIFICATE',
             'HSP_CERT_DESC','UPGRADED_LAST_3_YRS','UPGRADED_CERT_3_YRS','UPGRADED_CERT_DESC_3_YRS','MARRIED_WITHIN_2_YEARS',
@@ -111,7 +109,8 @@ if sample:
         # RandomForestClassifier(max_depth=16, n_estimators=1024, max_features=None),
         # XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
         # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
-        XGBClassifier()
+        XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
+        # XGBClassifier()
     ]
 else:
     classifiers = [# Other methods are underperformed yet take very long training time for this data set

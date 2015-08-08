@@ -9,3 +9,7 @@ BEST = XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=
 XGBClassifier(n_estimators=512,subsample=0.8,max_depth=8,min_child_weight=5) 0.0201772
 XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7) 0.0190156
 XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=9) 0.0193612
+XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=9) 0.018724 (No rank grade nor marital status)
+XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=9) 0.0191667 (No child age info)
+XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=9) 0.0192915 (No parent service)
+XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=9) 0.018724 (No divorce data)
