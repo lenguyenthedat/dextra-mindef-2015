@@ -17,11 +17,37 @@ from sklearn.svm import SVC
 from sklearn.naive_bayes import GaussianNB
 from sklearn.lda import LDA
 from sklearn.qda import QDA
+from sklearn.base import TransformerMixin
 
-pd.options.mode.chained_assignment = None
-
-sample = False
+sample = True
 gridsearch = False
+
+# http://stackoverflow.com/questions/25239958/impute-categorical-missing-values-in-scikit-learn
+class DataFrameImputer(TransformerMixin):
+    def __init__(self):
+        """Impute missing values.
+
+        Columns of dtype object are imputed with the most frequent value 
+        in column.
+
+        Columns of other types are imputed with mean of column.
+
+        """
+    def fit(self, X, y=None):
+
+        # self.fill = pd.Series([X[c].value_counts().index[0]
+        #     if X[c].dtype == np.dtype('O') else X[c].mean() for c in X],
+        #     index=X.columns)
+
+        # Treat N/A uniquely
+        self.fill = pd.Series([-1
+            if X[c].dtype == np.dtype('O') else -1 for c in X],
+            index=X.columns)
+
+        return self
+
+    def transform(self, X, y=None):
+        return X.fillna(self.fill)
 
 features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE',
             'YEARS_IN_GRADE','EMPLOYEE_GROUP','PARENT_SERVICE','SERVICE_SUB_AREA','SERVICE_TYPE','YEARS_OF_SERVICE',
@@ -48,7 +74,7 @@ if sample:
         test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
     else:
         df = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
-        df['is_train'] = (df[myid] % 10) >= 3
+        df['is_train'] = (df[myid] % 17) >= 9
         # df['is_train'] = np.random.uniform(0, 1, len(df)) <= .75
         train, test = df[df['is_train']==True], df[df['is_train']==False]
 else:
@@ -56,8 +82,8 @@ else:
     train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
     test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
 
-train=train.fillna(-1)
-test=test.fillna(-1)
+train = DataFrameImputer().fit_transform(train)
+test = DataFrameImputer().fit_transform(test)
 
 # Pre-processing non-number values
 le = LabelEncoder()
@@ -68,26 +94,24 @@ for col in features_non_numeric:
 
 # Neural Network, Stochastic Gradient Descent is sensitive to feature scaling, so it is highly recommended to scale your data.
 scaler = StandardScaler()
-for col in features:
+for col in set(features)-set(features_non_numeric):
     scaler.fit(list(train[col])+list(test[col]))
     train[col] = scaler.transform(train[col])
     test[col] = scaler.transform(test[col])
 
 MyNNClassifier = Classifier(
-                    layers=[
-                        Layer("Rectifier", units=100),
-                        Layer("Rectifier", units=100),
-                        Layer("Rectifier", units=100),
-                        Layer("Rectifier", units=100),
-                        Layer('Softmax')],
-                    learning_rate=0.1,
-                    learning_rule='momentum',
-                    learning_momentum=0.9,
-                    batch_size=20,
-                    valid_size=0.01,
-                    n_stable=50,
-                    n_iter=200,
-                    verbose=True)
+            layers=[
+                Layer('Rectifier', units=200),
+                Layer('Rectifier', units=256),
+                Layer('Softmax')],
+            learning_rate=0.01,
+            learning_rule='momentum',
+            learning_momentum=0.9,
+            batch_size=2000,
+            valid_size=0.01,
+            n_stable=100,
+            n_iter=100,
+            verbose=False)
 
 # Define classifiers
 if sample:
@@ -101,14 +125,12 @@ if sample:
         # GaussianNB(),
         # LDA(),
         # QDA(),
-        # MyNNClassifier,
+        # MyNNClassifier
         # DecisionTreeClassifier(criterion='entropy', min_samples_split=2,
         #     min_samples_leaf=1, max_depth=5, min_weight_fraction_leaf=0.0,
         #     max_features=None, random_state=None, max_leaf_nodes=None, class_weight=None),
         # AdaBoostClassifier(DecisionTreeClassifier(max_depth=16), algorithm="SAMME",n_estimators=200),
-        # RandomForestClassifier(max_depth=16, n_estimators=1024, max_features=None),
-        # XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
-        # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
+        # RandomForestClassifier(max_depth=16, n_estimators=256, max_features=8),
         XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
         # XGBClassifier()
     ]
@@ -120,6 +142,7 @@ else:
         # RandomForestClassifier(max_depth=16,n_estimators=1024),
         # XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
         # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7),
+        # RandomForestClassifier(max_depth=16, n_estimators=256, max_features=8),
         XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
     ]
 
@@ -141,10 +164,11 @@ for classifier in classifiers:
             if (classifier.__class__.__name__ == "XGBClassifier"):
                 print "Attempting GridSearchCV for XGB model"
                 gscv = GridSearchCV(classifier, {
-                    'max_depth': [1, 2, 5, 8, 10, 16, 25, 32],
-                    'n_estimators': [64, 128, 256, 365, 512, 712, 1024],
-                    'min_child_weight': [1,3,5,7, 9, 11, 13],
-                    'subsample': [0.6,0.8,1,1.2]},
+                    'max_depth': [8, 10, 13, 16, 20],
+                    'n_estimators': [256, 300, 365, 512],
+                    'min_child_weight': [1,2,3,4,5,6,7,8,9],
+                    'subsample': [0.5,1,1.5,2,2.5],
+                    'learning_rate': [0.1, 0.05, 0.01]},
                     verbose=1, n_jobs=2, scoring='log_loss')
             if (classifier.__class__.__name__ == "RandomForestClassifier"):
                 print "Attempting GridSearchCV for RF model"
@@ -157,7 +181,7 @@ for classifier in classifiers:
             if (classifier.__class__.__name__ == "Classifier"): # NN Classifier
                 print "Attempting GridSearchCV for Neural Network model"
                 gscv = GridSearchCV(classifier, {
-                    'hidden0__units': [4, 16, 64, 128],
+                    'hidden0__units': [4, 16, 32, 64, 128, 256],
                     'hidden0__type': ["Rectifier", "Sigmoid", "Tanh"]},
                     verbose=1, n_jobs=1)
             classifier = gscv.fit(np.array(train[list(features)]), train[goal])
