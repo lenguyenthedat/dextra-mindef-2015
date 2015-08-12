@@ -20,7 +20,7 @@ from sklearn.qda import QDA
 
 pd.options.mode.chained_assignment = None
 
-sample = False
+sample = True
 gridsearch = False
 
 features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE',
@@ -48,7 +48,7 @@ if sample:
         test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
     else:
         df = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
-        df['is_train'] = (df[myid] % 10) >= 3
+        df['is_train'] = (df[myid] % 17) >= 9
         # df['is_train'] = np.random.uniform(0, 1, len(df)) <= .75
         train, test = df[df['is_train']==True], df[df['is_train']==False]
 else:
