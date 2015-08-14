@@ -9,7 +9,7 @@ from sklearn.metrics import log_loss, accuracy_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, RandomForestClassifier, ExtraTreesClassifier
 from xgboost import XGBClassifier
 from sknn.mlp import Classifier, Layer
 from sklearn.grid_search import GridSearchCV
@@ -20,7 +20,7 @@ from sklearn.qda import QDA
 from sklearn.base import TransformerMixin
 
 sample = True
-gridsearch = False
+gridsearch = True
 
 # http://stackoverflow.com/questions/25239958/impute-categorical-missing-values-in-scikit-learn
 class DataFrameImputer(TransformerMixin):
@@ -35,14 +35,14 @@ class DataFrameImputer(TransformerMixin):
         """
     def fit(self, X, y=None):
 
-        # self.fill = pd.Series([X[c].value_counts().index[0]
-        #     if X[c].dtype == np.dtype('O') else X[c].mean() for c in X],
-        #     index=X.columns)
+        self.fill = pd.Series([X[c].value_counts().index[0]
+            if X[c].dtype == np.dtype('O') else X[c].mean() for c in X],
+            index=X.columns)
 
         # Treat N/A uniquely
-        self.fill = pd.Series([-1
-            if X[c].dtype == np.dtype('O') else -1 for c in X],
-            index=X.columns)
+        # self.fill = pd.Series([-1
+        #     if X[c].dtype == np.dtype('O') else -1 for c in X],
+        #     index=X.columns)
 
         return self
 
@@ -130,9 +130,17 @@ if sample:
         #     min_samples_leaf=1, max_depth=5, min_weight_fraction_leaf=0.0,
         #     max_features=None, random_state=None, max_leaf_nodes=None, class_weight=None),
         # AdaBoostClassifier(DecisionTreeClassifier(max_depth=16), algorithm="SAMME",n_estimators=200),
-        # RandomForestClassifier(max_depth=16, n_estimators=256, max_features=8),
-        XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
+        # ExtraTreesClassifier(n_estimators=1024, max_features=23,
+        #                        oob_score=False, bootstrap=True, min_samples_leaf=1,
+        #                        min_samples_split=2, max_depth=32),
+        # RandomForestClassifier(n_estimators=1024, max_features=23,
+        #                        oob_score=False, bootstrap=True, min_samples_leaf=1,
+        #                        min_samples_split=2, max_depth=32),
+        # XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=8,learning_rate=0.05),
+        # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
         # XGBClassifier()
+        RandomForestClassifier()
+        # ExtraTreesClassifier()
     ]
 else:
     classifiers = [# Other methods are underperformed yet take very long training time for this data set
@@ -143,6 +151,9 @@ else:
         # XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
         # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7),
         # RandomForestClassifier(max_depth=16, n_estimators=256, max_features=8),
+        RandomForestClassifier(n_estimators=1024, max_features=23,
+                               oob_score=False, bootstrap=True, min_samples_leaf=1,
+                               min_samples_split=2, max_depth=32),
         XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
     ]
 
@@ -152,50 +163,64 @@ for classifier in classifiers:
     start = time.time()
 
     if (gridsearch & sample): # only do gridsearch if we run with sampled data.
-        try: # depth & estimator: usually fits for RF and XGB
-            if (classifier.__class__.__name__ == "GradientBoostingClassifier"):
-                print "Attempting GridSearchCV for GB model"
-                gscv = GridSearchCV(classifier, {
-                    'max_depth': [2, 8, 16],
-                    'n_estimators': [32, 64, 128, 256, 512],
-                    'learning_rate': [0.1, 0.05, 0.01],
-                    'subsample': [0.6,0.8,1]},
-                    verbose=1, n_jobs=2, scoring='log_loss')
-            if (classifier.__class__.__name__ == "XGBClassifier"):
-                print "Attempting GridSearchCV for XGB model"
-                gscv = GridSearchCV(classifier, {
-                    'max_depth': [8, 10, 13, 16, 20],
-                    'n_estimators': [256, 300, 365, 512],
-                    'min_child_weight': [1,2,3,4,5,6,7,8,9],
-                    'subsample': [0.5,1,1.5,2,2.5],
-                    'learning_rate': [0.1, 0.05, 0.01]},
-                    verbose=1, n_jobs=2, scoring='log_loss')
-            if (classifier.__class__.__name__ == "RandomForestClassifier"):
-                print "Attempting GridSearchCV for RF model"
-                gscv = GridSearchCV(classifier, {
-                    'max_depth': [2, 8, 16, 32],
-                    'n_estimators': [32, 64, 128, 256, 512],
-                    'bootstrap':[True,False],
-                    'oob_score': [True,False]},
-                    verbose=1, n_jobs=2, scoring='log_loss')
-            if (classifier.__class__.__name__ == "Classifier"): # NN Classifier
-                print "Attempting GridSearchCV for Neural Network model"
-                gscv = GridSearchCV(classifier, {
-                    'hidden0__units': [4, 16, 32, 64, 128, 256],
-                    'hidden0__type': ["Rectifier", "Sigmoid", "Tanh"]},
-                    verbose=1, n_jobs=1)
-            classifier = gscv.fit(np.array(train[list(features)]), train[goal])
-            print(classifier.best_score_)
-            print(classifier.best_params_)
-        except:
-            classifier.fit(np.array(train[list(features)]), train[goal]) # just fit regular one
+        if (classifier.__class__.__name__ == "GradientBoostingClassifier"):
+            print "Attempting GridSearchCV for GB model"
+            gscv = GridSearchCV(classifier, {
+                'max_depth': [2, 8, 16],
+                'n_estimators': [32, 64, 128, 256, 512],
+                'learning_rate': [0.1, 0.05, 0.01],
+                'subsample': [0.6,0.8,1]},
+                verbose=1, n_jobs=2, cv=3, scoring='log_loss')
+        if (classifier.__class__.__name__ == "XGBClassifier"):
+            print "Attempting GridSearchCV for XGB model"
+            gscv = GridSearchCV(classifier, {
+                'max_depth': [8, 10, 13, 16, 20],
+                'n_estimators': [256, 300, 365, 512],
+                'min_child_weight': [1,2,3,4,5,6,7,8,9],
+                'subsample': [0.5,1,1.5,2,2.5],
+                'learning_rate': [0.1, 0.05, 0.01]},
+                verbose=1, n_jobs=2, cv=3, scoring='log_loss')
+        if (classifier.__class__.__name__ == "RandomForestClassifier"):
+            print "Attempting GridSearchCV for RF model"
+            gscv = GridSearchCV(classifier, {
+                'max_depth': [2, 8, 16, 32],
+                'max_features' : [2, 8, 16, 32],
+                'min_samples_split': [2,4,8,16],
+                'min_samples_leaf': [1,2,4,8],
+                'n_estimators': [32, 64, 128, 256, 512],
+                'bootstrap':[True],
+                'oob_score': [True,False]},
+                verbose=1, n_jobs=2, cv=3,scoring='log_loss')
+        if (classifier.__class__.__name__ == "ExtraTreesClassifier"):
+            print "Attempting GridSearchCV for RF model"
+            gscv = GridSearchCV(classifier, {
+                'max_depth': [2, 8, 16, 32],
+                'max_features' : [2, 8, 16, 32],
+                'min_samples_split': [2,4,8,16],
+                'min_samples_leaf': [1,2,4,8],
+                'n_estimators': [32, 64, 128, 256, 512],
+                'bootstrap':[True],
+                'oob_score': [True,False]},
+                verbose=1, n_jobs=2, cv=3,scoring='log_loss')
+        if (classifier.__class__.__name__ == "Classifier"): # NN Classifier
+            print "Attempting GridSearchCV for Neural Network model"
+            gscv = GridSearchCV(classifier, {
+                'hidden0__units': [4, 16, 32, 64, 128, 256],
+                'hidden0__type': ["Rectifier", "Sigmoid", "Tanh"]},
+                verbose=1, n_jobs=1)
+        classifier = gscv.fit(np.array(train[list(features)]), train[goal])
+        print(classifier.best_score_)
+        print(classifier.best_params_)
     else:
         classifier.fit(np.array(train[list(features)]), train[goal])
     print '  -> Training time:', time.time() - start
-    # print classifier.feature_importances_
+    try:
+        print classifier.feature_importances_
+    except:
+        pass
 # Evaluation and export result
 if sample:
-    if ~gridsearch:
+    if not gridsearch:
         for classifier in classifiers:
             print "===" + classifier.__class__.__name__
             print 'Log Loss:'
