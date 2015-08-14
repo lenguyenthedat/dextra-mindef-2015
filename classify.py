@@ -4,7 +4,8 @@ import csv
 import numpy as np
 import os
 import itertools
-
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.metrics import log_loss, accuracy_score
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
@@ -19,8 +20,8 @@ from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.base import TransformerMixin
 
-sample = True
-gridsearch = True
+sample = False
+gridsearch = False
 
 # http://stackoverflow.com/questions/25239958/impute-categorical-missing-values-in-scikit-learn
 class DataFrameImputer(TransformerMixin):
@@ -243,3 +244,20 @@ else: # Export result
             writer = csv.writer(output, lineterminator='\n')
             writer.writerow([myid,goal])
             writer.writerows(predictions)
+        try:
+            with PdfPages('feature_importances_' + classifier.__class__.__name__ +".pdf") as pdf:
+                # Plot feature importance
+                feature_importance = classifier.feature_importances_
+                # make importances relative to max importance
+                feature_importance = 100.0 * (feature_importance / feature_importance.max())
+                sorted_idx = np.argsort(feature_importance)
+                pos = np.arange(sorted_idx.shape[0]) + .5
+                plt.subplot(1, 2, 2)
+                plt.barh(pos, feature_importance[sorted_idx], align='center')
+                plt.yticks(pos, features)
+                plt.xlabel('Relative Importance')
+                plt.title('Variable Importance')
+                pdf.savefig()
+                # plt.show()
+        except:
+            pass
