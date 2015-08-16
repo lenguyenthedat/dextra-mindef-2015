@@ -36,14 +36,18 @@ class DataFrameImputer(TransformerMixin):
         """
     def fit(self, X, y=None):
 
-        self.fill = pd.Series([X[c].value_counts().index[0]
-            if X[c].dtype == np.dtype('O') else X[c].mean() for c in X],
-            index=X.columns)
+        # self.fill = pd.Series([X[c].value_counts().index[0]
+        #     if X[c].dtype == np.dtype('O') else X[c].mean() for c in X],
+        #     index=X.columns)
+
+        # self.fill = pd.Series([X[c].value_counts().index[0]
+        #     if X[c].dtype == np.dtype('O') else X[c].median() for c in X],
+        #     index=X.columns)
 
         # Treat N/A uniquely
-        # self.fill = pd.Series([-1
-        #     if X[c].dtype == np.dtype('O') else -1 for c in X],
-        #     index=X.columns)
+        self.fill = pd.Series(['-1'
+            if X[c].dtype == np.dtype('O') else -1 for c in X],
+            index=X.columns)
 
         return self
 
@@ -131,17 +135,20 @@ if sample:
         #     min_samples_leaf=1, max_depth=5, min_weight_fraction_leaf=0.0,
         #     max_features=None, random_state=None, max_leaf_nodes=None, class_weight=None),
         # AdaBoostClassifier(DecisionTreeClassifier(max_depth=16), algorithm="SAMME",n_estimators=200),
-        # ExtraTreesClassifier(n_estimators=1024, max_features=23,
+        # ExtraTreesClassifier(n_estimators=1024, max_features=None,
         #                        oob_score=False, bootstrap=True, min_samples_leaf=1,
-        #                        min_samples_split=2, max_depth=32),
+        #                        min_samples_split=2, max_depth=19),
         # RandomForestClassifier(n_estimators=1024, max_features=23,
         #                        oob_score=False, bootstrap=True, min_samples_leaf=1,
         #                        min_samples_split=2, max_depth=32),
+        # RandomForestClassifier(n_estimators=512, max_features=16,
+        #                        oob_score=False, bootstrap=True, min_samples_leaf=2,
+        #                        min_samples_split=4, max_depth=8),
         # XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=8,learning_rate=0.05),
         # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
-        # XGBClassifier()
-        RandomForestClassifier()
-        # ExtraTreesClassifier()
+        XGBClassifier(),
+        RandomForestClassifier(),
+        ExtraTreesClassifier()
     ]
 else:
     classifiers = [# Other methods are underperformed yet take very long training time for this data set
@@ -152,6 +159,9 @@ else:
         # XGBClassifier(n_estimators=128,subsample=1,max_depth=16,min_child_weight=3),
         # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7),
         # RandomForestClassifier(max_depth=16, n_estimators=256, max_features=8),
+        ExtraTreesClassifier(n_estimators=1024, max_features=None,
+                               oob_score=False, bootstrap=True, min_samples_leaf=1,
+                               min_samples_split=2, max_depth=19),
         RandomForestClassifier(n_estimators=1024, max_features=23,
                                oob_score=False, bootstrap=True, min_samples_leaf=1,
                                min_samples_split=2, max_depth=32),
@@ -171,7 +181,7 @@ for classifier in classifiers:
                 'n_estimators': [32, 64, 128, 256, 512],
                 'learning_rate': [0.1, 0.05, 0.01],
                 'subsample': [0.6,0.8,1]},
-                verbose=1, n_jobs=2, cv=3, scoring='log_loss')
+                verbose=1, n_jobs=1, cv=3, scoring='log_loss')
         if (classifier.__class__.__name__ == "XGBClassifier"):
             print "Attempting GridSearchCV for XGB model"
             gscv = GridSearchCV(classifier, {
@@ -180,29 +190,29 @@ for classifier in classifiers:
                 'min_child_weight': [1,2,3,4,5,6,7,8,9],
                 'subsample': [0.5,1,1.5,2,2.5],
                 'learning_rate': [0.1, 0.05, 0.01]},
-                verbose=1, n_jobs=2, cv=3, scoring='log_loss')
+                verbose=1, n_jobs=1, cv=3, scoring='log_loss')
         if (classifier.__class__.__name__ == "RandomForestClassifier"):
             print "Attempting GridSearchCV for RF model"
             gscv = GridSearchCV(classifier, {
-                'max_depth': [2, 8, 16, 32],
-                'max_features' : [2, 8, 16, 32],
-                'min_samples_split': [2,4,8,16],
-                'min_samples_leaf': [1,2,4,8],
-                'n_estimators': [32, 64, 128, 256, 512],
+                'max_depth': [12,14,16,18,20,22,24,26,28,30],
+                'max_features' : [2, 8, 16, 20, 24, 28, 32],
+                'min_samples_split': [1,2,4,6,8],
+                'min_samples_leaf': [1,2,3,4],
+                'n_estimators': [256, 512, 1024],
                 'bootstrap':[True],
                 'oob_score': [True,False]},
-                verbose=1, n_jobs=2, cv=3,scoring='log_loss')
+                verbose=1, n_jobs=1, cv=3,scoring='log_loss')
         if (classifier.__class__.__name__ == "ExtraTreesClassifier"):
-            print "Attempting GridSearchCV for RF model"
+            print "Attempting GridSearchCV for ExtraTrees model"
             gscv = GridSearchCV(classifier, {
-                'max_depth': [2, 8, 16, 32],
-                'max_features' : [2, 8, 16, 32],
-                'min_samples_split': [2,4,8,16],
-                'min_samples_leaf': [1,2,4,8],
-                'n_estimators': [32, 64, 128, 256, 512],
+                'max_depth': [12,14,16,18,20,22,24,26,28,30],
+                'max_features' : [2, 8, 16, 20, 24, 28, 32],
+                'min_samples_split': [1,2,4,6,8],
+                'min_samples_leaf': [1,2,3,4],
+                'n_estimators': [256, 512, 1024],
                 'bootstrap':[True],
                 'oob_score': [True,False]},
-                verbose=1, n_jobs=2, cv=3,scoring='log_loss')
+                verbose=1, n_jobs=1, cv=3,scoring='log_loss')
         if (classifier.__class__.__name__ == "Classifier"): # NN Classifier
             print "Attempting GridSearchCV for Neural Network model"
             gscv = GridSearchCV(classifier, {
