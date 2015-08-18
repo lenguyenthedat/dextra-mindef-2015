@@ -154,6 +154,8 @@ if sample:
         #                        oob_score=False, bootstrap=True, min_samples_leaf=1,
         #                        min_samples_split=2, max_depth=32),
         # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
+        # GradientBoostingClassifier(n_estimators=1000,max_depth=3,learning_rate=0.02),
+        GradientBoostingClassifier(),
         XGBClassifier()
         # RandomForestClassifier(),
         # ExtraTreesClassifier()
@@ -174,6 +176,14 @@ for classifier in classifiers:
     print classifier.__class__.__name__
     start = time.time()
     if (gridsearch & sample): # only do gridsearch if we run with sampled data.
+        if (classifier.__class__.__name__ == "GradientBoostingClassifier"):
+            print "Attempting GridSearchCV for GB model"
+            gscv = GridSearchCV(classifier, {
+                'max_depth': [2, 3, 5, 7, 8, 12, 16, 20, 32],
+                'n_estimators': [256,512,1024],
+                'learning_rate': [0.1, 0.02, 0.04],
+                'subsample': [0.6,0.8,1]},
+                verbose=1, n_jobs=1, cv=3, scoring=el_scorer)
         if (classifier.__class__.__name__ == "XGBClassifier"):
             print "Attempting GridSearchCV for XGB model"
             gscv = GridSearchCV(classifier, {
