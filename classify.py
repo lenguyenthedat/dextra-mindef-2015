@@ -5,8 +5,10 @@ import numpy as np
 import os
 import itertools
 import matplotlib.pyplot as plt
+import scipy as sp
+
 from matplotlib.backends.backend_pdf import PdfPages
-from sklearn.metrics import log_loss, accuracy_score
+from sklearn.metrics import make_scorer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -23,34 +25,36 @@ from sklearn.base import TransformerMixin
 sample = False
 gridsearch = False
 
+def entropyloss(act, pred):
+    epsilon = 1e-15
+    pred = sp.maximum(epsilon, pred)
+    pred = sp.minimum(1-epsilon, pred)
+    el = sum(act*sp.log10(pred) + sp.subtract(1,act)*sp.log10(sp.subtract(1,pred)))
+    el = el * -1.0/len(act)
+    return el
+
+el_scorer = make_scorer(entropyloss, greater_is_better = False)
+
 # http://stackoverflow.com/questions/25239958/impute-categorical-missing-values-in-scikit-learn
 class DataFrameImputer(TransformerMixin):
     def __init__(self):
         """Impute missing values.
-
         Columns of dtype object are imputed with the most frequent value 
         in column.
-
         Columns of other types are imputed with mean of column.
-
         """
     def fit(self, X, y=None):
-
         # self.fill = pd.Series([X[c].value_counts().index[0]
         #     if X[c].dtype == np.dtype('O') else X[c].mean() for c in X],
         #     index=X.columns)
-
-        # self.fill = pd.Series([X[c].value_counts().index[0]
-        #     if X[c].dtype == np.dtype('O') else X[c].median() for c in X],
-        #     index=X.columns)
-
-        # Treat N/A uniquely
-        self.fill = pd.Series(['-1'
-            if X[c].dtype == np.dtype('O') else -1 for c in X],
+        self.fill = pd.Series([X[c].value_counts().index[0]
+            if X[c].dtype == np.dtype('O') else X[c].median() for c in X],
             index=X.columns)
-
+        # # Treat N/A uniquely
+        # self.fill = pd.Series(['-1'
+        #     if X[c].dtype == np.dtype('O') else -1 for c in X],
+        #     index=X.columns)
         return self
-
     def transform(self, X, y=None):
         return X.fillna(self.fill)
 
@@ -146,9 +150,9 @@ if sample:
         #                        min_samples_split=4, max_depth=8),
         # XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=8,learning_rate=0.05),
         # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
-        XGBClassifier(),
-        RandomForestClassifier(),
-        ExtraTreesClassifier()
+        XGBClassifier()
+        # RandomForestClassifier(),
+        # ExtraTreesClassifier()
     ]
 else:
     classifiers = [# Other methods are underperformed yet take very long training time for this data set
@@ -172,7 +176,6 @@ else:
 for classifier in classifiers:
     print classifier.__class__.__name__
     start = time.time()
-
     if (gridsearch & sample): # only do gridsearch if we run with sampled data.
         if (classifier.__class__.__name__ == "GradientBoostingClassifier"):
             print "Attempting GridSearchCV for GB model"
@@ -181,7 +184,7 @@ for classifier in classifiers:
                 'n_estimators': [32, 64, 128, 256, 512],
                 'learning_rate': [0.1, 0.05, 0.01],
                 'subsample': [0.6,0.8,1]},
-                verbose=1, n_jobs=1, cv=3, scoring='log_loss')
+                verbose=1, n_jobs=1, cv=3, scoring=el_scorer)
         if (classifier.__class__.__name__ == "XGBClassifier"):
             print "Attempting GridSearchCV for XGB model"
             gscv = GridSearchCV(classifier, {
@@ -190,7 +193,7 @@ for classifier in classifiers:
                 'min_child_weight': [1,2,3,4,5,6,7,8,9],
                 'subsample': [0.5,1,1.5,2,2.5],
                 'learning_rate': [0.1, 0.05, 0.01]},
-                verbose=1, n_jobs=1, cv=3, scoring='log_loss')
+                verbose=1, n_jobs=1, cv=3, scoring=el_scorer)
         if (classifier.__class__.__name__ == "RandomForestClassifier"):
             print "Attempting GridSearchCV for RF model"
             gscv = GridSearchCV(classifier, {
@@ -201,7 +204,7 @@ for classifier in classifiers:
                 'n_estimators': [256, 512, 1024],
                 'bootstrap':[True],
                 'oob_score': [True,False]},
-                verbose=1, n_jobs=1, cv=3,scoring='log_loss')
+                verbose=1, n_jobs=1, cv=3,scoring=el_scorer)
         if (classifier.__class__.__name__ == "ExtraTreesClassifier"):
             print "Attempting GridSearchCV for ExtraTrees model"
             gscv = GridSearchCV(classifier, {
@@ -212,7 +215,7 @@ for classifier in classifiers:
                 'n_estimators': [256, 512, 1024],
                 'bootstrap':[True],
                 'oob_score': [True,False]},
-                verbose=1, n_jobs=1, cv=3,scoring='log_loss')
+                verbose=1, n_jobs=1, cv=3,scoring=el_scorer)
         if (classifier.__class__.__name__ == "Classifier"): # NN Classifier
             print "Attempting GridSearchCV for Neural Network model"
             gscv = GridSearchCV(classifier, {
@@ -235,7 +238,7 @@ if sample:
         for classifier in classifiers:
             print "===" + classifier.__class__.__name__
             print 'Log Loss:'
-            print log_loss(test[goal].values, classifier.predict_proba(np.array(test[features])))
+            print entropyloss(test[goal].values, np.compress([False, True],classifier.predict_proba(np.array(test[features])), axis=1).flatten())
 else: # Export result
     count = 0
     for classifier in classifiers:
