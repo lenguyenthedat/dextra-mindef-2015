@@ -22,7 +22,8 @@ from sklearn.lda import LDA
 from sklearn.qda import QDA
 from sklearn.base import TransformerMixin
 
-sample = False
+
+sample = True
 gridsearch = False
 
 def entropyloss(act, pred):
@@ -47,11 +48,10 @@ class DataFrameImputer(TransformerMixin):
         # self.fill = pd.Series([X[c].value_counts().index[0]
         #     if X[c].dtype == np.dtype('O') else X[c].mean() for c in X],
         #     index=X.columns)
-        self.fill = pd.Series([X[c].value_counts().index[0]
+        self.fill = pd.Series([X[c].value_counts().index[0] # best for RF and ET
             if X[c].dtype == np.dtype('O') else X[c].median() for c in X],
             index=X.columns)
-        # # Treat N/A uniquely
-        # self.fill = pd.Series(['-1'
+        # self.fill = pd.Series(['-1' # Treat N/A uniquely - best for XGB
         #     if X[c].dtype == np.dtype('O') else -1 for c in X],
         #     index=X.columns)
         return self
@@ -150,9 +150,9 @@ if sample:
         #                        min_samples_split=4, max_depth=8),
         # XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=8,learning_rate=0.05),
         # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7)
-        XGBClassifier()
-        # RandomForestClassifier(),
-        # ExtraTreesClassifier()
+        XGBClassifier(),
+        RandomForestClassifier(),
+        ExtraTreesClassifier()
     ]
 else:
     classifiers = [# Other methods are underperformed yet take very long training time for this data set
