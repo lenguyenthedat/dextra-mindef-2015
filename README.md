@@ -30,3 +30,30 @@ RandomForestClassifier(n_estimators=1024, max_features=23,oob_score=False, boots
 XGBClassifier(n_estimators=256,subsample=0.5,max_depth=10,min_child_weight=3,learning_rate=0.1) 0.0200443
 XGBClassifier(n_estimators=256,subsample=0.5,max_depth=10,min_child_weight=3,learning_rate=0.05) 0.0193743
 XGBClassifier(n_estimators=2048,subsample=0.5,max_depth=10,min_child_weight=3,learning_rate=0.03) 0.0204512
+
+
+
+--- Hall of fucking fame:
+cv = cross_validation.KFold(len(train), n_folds=5, shuffle=True, indices=False, random_state=1337)
+XGBClassifier
+0.016305351037
+0.0214994732043
+0.0109005534736
+0.0157298640789
+0.0163817216885
+Results: 0.0161633926965
+
+
+cv = cross_validation.KFold(len(train), n_folds=10, shuffle=True, indices=False, random_state=1337)
+XGBClassifier
+0.0132394294141
+0.0190374850443
+0.0180839631635
+0.02466821637
+0.0114606088516
+0.0103901016906
+0.0182169675627
+0.0135496847102
+0.0164289318806
+0.0154071139885
+Results: 0.0160482502676
