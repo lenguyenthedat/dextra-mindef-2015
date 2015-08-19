@@ -15,7 +15,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.base import TransformerMixin
 from sklearn import cross_validation
 
-sample = False
+sample = True
 
 goal = 'RESIGNED'
 myid = 'PERID'
@@ -45,7 +45,7 @@ class DataFrameImputer(TransformerMixin):
         return X.fillna(self.fill)
 
 # LOAD DATA
-features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE','AGE_GROUPING','MARITAL_STATUS','RANK_GROUPING',
+features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE','AGE_GROUPING','MARITAL_STATUS','RANK_GRADE','RANK_GROUPING',
             'YEARS_IN_GRADE','EMPLOYEE_GROUP','PARENT_SERVICE','SERVICE_SUB_AREA','SERVICE_TYPE','YEARS_OF_SERVICE',
             'VOC','UNIT','NO_OF_KIDS','MIN_CHILD_AGE','AVE_CHILD_AGE','HSP_ESTABLISHMENT','HSP_CERTIFICATE','HSP_CERT_RANK',
             'HSP_CERT_DESC','UPGRADED_LAST_3_YRS','UPGRADED_CERT_3_YRS','UPGRADED_CERT_DESC_3_YRS','MARRIED_WITHIN_2_YEARS',
@@ -53,12 +53,17 @@ features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE','AGE_GROUPING','MARI
             'PROMO_LAST_2_YRS','PROMO_LAST_1_YR','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR','AWARDS_RECEIVED',
             'HOUSING_TYPE','HOUSING_GROUP','HOUSING_RANK','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','HOUSE_UPG_DGRD','IPPT_SCORE',
             'PES_SCORE','HOMETOWORKDIST','SVC_INJURY_TYPE','TOT_PERC_INC_LAST_1_YR','BAS_PERC_INC_LAST_1_YR']
-features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING','MARITAL_STATUS','RANK_GROUPING',
+features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING','MARITAL_STATUS','RANK_GRADE','RANK_GROUPING',
             'EMPLOYEE_GROUP','PARENT_SERVICE','SERVICE_SUB_AREA','SERVICE_TYPE',
             'VOC','UNIT','HSP_ESTABLISHMENT','HSP_CERTIFICATE',
             'HSP_CERT_DESC','UPGRADED_LAST_3_YRS','UPGRADED_CERT_3_YRS','UPGRADED_CERT_DESC_3_YRS','MARRIED_WITHIN_2_YEARS',
             'DIVORCE_WITHIN_2_YEARS','DIVORCE_REMARRIED_WITHIN_2_YEARS','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR',
             'HOUSING_TYPE','HOUSING_GROUP','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','SVC_INJURY_TYPE']
+
+noisy_features = ['RANK_GRADE']
+features = [c for c in features if c not in noisy_features]
+features_non_numeric = [c for c in features_non_numeric if c not in noisy_features]
+
 # Load data
 train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
 test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
@@ -116,21 +121,19 @@ for col in features_non_numeric:
 
 # Neural Network, Stochastic Gradient Descent is sensitive to feature scaling, so it is highly recommended to scale your data.
 scaler = StandardScaler()
-for col in set(features)-set(features_non_numeric):
+for col in set(features) - set(features_non_numeric) - \
+  set(['TOT_PERC_INC_LAST_1_YR','BAS_PERC_INC_LAST_1_YR','AGE',
+       'YEARS_IN_GRADE', 'YEARS_OF_SERVICE', 'NO_OF_KIDS', 'MIN_CHILD_AGE',
+       'AVE_CHILD_AGE','HSP_CERT_RANK','HOUSING_RANK']):
     scaler.fit(list(train[col])+list(test[col]))
     train[col] = scaler.transform(train[col])
     test[col] = scaler.transform(test[col])
 
 # XGB Params
-# params = {'max_depth':8, 'eta':0.05, 'silent':1,
-#           'objective':'multi:softprob', 'num_class':2, 'eval_metric':'logloss',
-#           'min_child_weight':3, 'subsample':1,'colsample_bytree':0.6, 'nthread':4}
-# num_rounds = 180
-params = {'max_depth':8, 'eta':0.01, 'silent':1,
+params = {'max_depth':8, 'eta':0.05, 'silent':1,
           'objective':'multi:softprob', 'num_class':2, 'eval_metric':'logloss',
           'min_child_weight':3, 'subsample':1,'colsample_bytree':0.6, 'nthread':4}
-num_rounds = 1000
-
+num_rounds = 180
 
 # TRAINING / GRIDSEARCH
 if sample:
