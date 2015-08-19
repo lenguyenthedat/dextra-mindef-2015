@@ -15,7 +15,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.base import TransformerMixin
 from sklearn import cross_validation
 
-sample = True
+sample = False
 
 goal = 'RESIGNED'
 myid = 'PERID'
@@ -63,45 +63,45 @@ features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING'
 train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
 test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
 
-# FEATURE ENGINEERING
-# Rank grouping
-train['Rank_1'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
-train['Rank_2'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
-test['Rank_1'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
-test['Rank_2'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
-features = features + ['Rank_1', 'Rank_2']
-features_non_numeric = features_non_numeric + ['Rank_1', 'Rank_2']
+# # FEATURE ENGINEERING
+# # Rank grouping
+# train['Rank_1'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
+# train['Rank_2'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
+# test['Rank_1'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
+# test['Rank_2'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
+# features = features + ['Rank_1', 'Rank_2']
+# features_non_numeric = features_non_numeric + ['Rank_1', 'Rank_2']
 
-# These are yes / no columns which might contain NaN that doesn't have a significant propotion of yes or no
-for col in ['UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR','MOVE_HOUSE_T_2','UPGRADED_LAST_3_YRS']:
-    train[col] = train[col].fillna('UNKNOWN')
-    test[col] = test[col].fillna('UNKNOWN')
+# # These are yes / no columns which might contain NaN that doesn't have a significant propotion of yes or no
+# for col in ['UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR','MOVE_HOUSE_T_2','UPGRADED_LAST_3_YRS']:
+#     train[col] = train[col].fillna('UNKNOWN')
+#     test[col] = test[col].fillna('UNKNOWN')
 
-# SVC Injury Type
-train['SVC_INJURY_TYPE'] = train['SVC_INJURY_TYPE'].fillna(-1)
-test['SVC_INJURY_TYPE'] = test['SVC_INJURY_TYPE'].fillna(-1)
+# # SVC Injury Type
+# train['SVC_INJURY_TYPE'] = train['SVC_INJURY_TYPE'].fillna(-1)
+# test['SVC_INJURY_TYPE'] = test['SVC_INJURY_TYPE'].fillna(-1)
 
-# HSP_ESTABLISHMENT
-train['HSP_ESTABLISHMENT'] = train['HSP_ESTABLISHMENT'].fillna('NONE')
-test['HSP_ESTABLISHMENT'] = test['HSP_ESTABLISHMENT'].fillna('NONE')
+# # HSP_ESTABLISHMENT
+# train['HSP_ESTABLISHMENT'] = train['HSP_ESTABLISHMENT'].fillna('NONE')
+# test['HSP_ESTABLISHMENT'] = test['HSP_ESTABLISHMENT'].fillna('NONE')
 
-# HSP_CERTIFICATE
-train['HSP_CERTIFICATE'] = train['HSP_CERTIFICATE'].fillna('NONE')
-test['HSP_CERTIFICATE'] = test['HSP_CERTIFICATE'].fillna('NONE')
+# # HSP_CERTIFICATE
+# train['HSP_CERTIFICATE'] = train['HSP_CERTIFICATE'].fillna('NONE')
+# test['HSP_CERTIFICATE'] = test['HSP_CERTIFICATE'].fillna('NONE')
 
-# UPGRADED_CERT_DESC_3_YRS - this has too many values
+# # UPGRADED_CERT_DESC_3_YRS - this has too many values
 
-# HOUSING_TYPE
-train['HOUSING_TYPE'] = train['HOUSING_TYPE'].fillna('NONE')
-test['HOUSING_TYPE'] = test['HOUSING_TYPE'].fillna('NONE')
+# # HOUSING_TYPE
+# train['HOUSING_TYPE'] = train['HOUSING_TYPE'].fillna('NONE')
+# test['HOUSING_TYPE'] = test['HOUSING_TYPE'].fillna('NONE')
 
-# HOUSING_GROUP
-train['HOUSING_GROUP'] = train['HOUSING_GROUP'].fillna('NONE')
-test['HOUSING_GROUP'] = test['HOUSING_GROUP'].fillna('NONE')
+# # HOUSING_GROUP
+# train['HOUSING_GROUP'] = train['HOUSING_GROUP'].fillna('NONE')
+# test['HOUSING_GROUP'] = test['HOUSING_GROUP'].fillna('NONE')
 
-# PREV_HOUSING_TYPE
-train['PREV_HOUSING_TYPE'] = train['PREV_HOUSING_TYPE'].fillna('UNKNOWN')
-test['PREV_HOUSING_TYPE'] = test['PREV_HOUSING_TYPE'].fillna('UNKNOWN')
+# # PREV_HOUSING_TYPE
+# train['PREV_HOUSING_TYPE'] = train['PREV_HOUSING_TYPE'].fillna('UNKNOWN')
+# test['PREV_HOUSING_TYPE'] = test['PREV_HOUSING_TYPE'].fillna('UNKNOWN')
 
 # Fill NA
 train = DataFrameImputer().fit_transform(train)
@@ -122,10 +122,15 @@ for col in set(features)-set(features_non_numeric):
     test[col] = scaler.transform(test[col])
 
 # XGB Params
-params = {'max_depth':8, 'eta':0.05, 'silent':1,
-          'objective':'multi:softprob', 'num_class':2,
+# params = {'max_depth':8, 'eta':0.05, 'silent':1,
+#           'objective':'multi:softprob', 'num_class':2, 'eval_metric':'logloss',
+#           'min_child_weight':3, 'subsample':1,'colsample_bytree':0.6, 'nthread':4}
+# num_rounds = 180
+params = {'max_depth':8, 'eta':0.01, 'silent':1,
+          'objective':'multi:softprob', 'num_class':2, 'eval_metric':'logloss',
           'min_child_weight':3, 'subsample':1,'colsample_bytree':0.6, 'nthread':4}
-num_rounds = 180
+num_rounds = 1000
+
 
 # TRAINING / GRIDSEARCH
 if sample:
@@ -136,6 +141,7 @@ if sample:
       classifier = xgb.train(params, xgbtrain, num_rounds)
       score = entropyloss(train[testcv][goal].values, np.compress([False, True],\
           classifier.predict(xgb.DMatrix(train[testcv][features])), axis=1).flatten())
+      print score
       results.append(score)
   print "Results: " + str(results)
   print "Mean: " + str(np.array(results).mean())

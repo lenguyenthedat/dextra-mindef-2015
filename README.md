@@ -51,6 +51,13 @@ XGBClassifier(n_estimators=2048,subsample=0.5,max_depth=10,min_child_weight=3,le
 Results: [0.01601425233360964, 0.020371078696600001, 0.010461164126409057, 0.014025222435671015, 0.014524528938030926]
 Mean: 0.0150792493061
 
+params = {'max_depth':8, 'eta':0.05, 'silent':1,
+          'objective':'multi:softprob', 'num_class':2, 'eval_metric':'logloss',
+          'min_child_weight':3, 'subsample':1,'colsample_bytree':0.6, 'nthread':4}
+num_rounds = 180
+Results: [0.015967713220674192, 0.019908556421256548, 0.0099656954301119999, 0.01385761412214254, 0.014662429553165731]
+Mean: 0.0148724017495
+
 --- Hall of fucking fame:
 cv = cross_validation.KFold(len(train), n_folds=5, shuffle=True, indices=False, random_state=1337)
 XGBClassifier
