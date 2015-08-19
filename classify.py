@@ -27,7 +27,7 @@ from scipy.stats import randint
 from numpy.random import uniform
 from sklearn import cross_validation
 
-sample = False
+sample = True
 gridsearch = False
 randomsearch = False
 
@@ -61,7 +61,7 @@ class DataFrameImputer(TransformerMixin):
         return X.fillna(self.fill)
 
 # LOAD DATA
-features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE','AGE_GROUPING','MARITAL_STATUS', 'RANK_GROUPING',
+features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE','AGE_GROUPING','MARITAL_STATUS','RANK_GRADE','RANK_GROUPING',
             'YEARS_IN_GRADE','EMPLOYEE_GROUP','PARENT_SERVICE','SERVICE_SUB_AREA','SERVICE_TYPE','YEARS_OF_SERVICE',
             'VOC','UNIT','NO_OF_KIDS','MIN_CHILD_AGE','AVE_CHILD_AGE','HSP_ESTABLISHMENT','HSP_CERTIFICATE','HSP_CERT_RANK',
             'HSP_CERT_DESC','UPGRADED_LAST_3_YRS','UPGRADED_CERT_3_YRS','UPGRADED_CERT_DESC_3_YRS','MARRIED_WITHIN_2_YEARS',
@@ -69,18 +69,23 @@ features = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE','AGE_GROUPING','MARI
             'PROMO_LAST_2_YRS','PROMO_LAST_1_YR','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR','AWARDS_RECEIVED',
             'HOUSING_TYPE','HOUSING_GROUP','HOUSING_RANK','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','HOUSE_UPG_DGRD','IPPT_SCORE',
             'PES_SCORE','HOMETOWORKDIST','SVC_INJURY_TYPE','TOT_PERC_INC_LAST_1_YR','BAS_PERC_INC_LAST_1_YR']
-features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING','MARITAL_STATUS', 'RANK_GROUPING',
+features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING','MARITAL_STATUS','RANK_GRADE','RANK_GROUPING',
             'EMPLOYEE_GROUP','PARENT_SERVICE','SERVICE_SUB_AREA','SERVICE_TYPE',
             'VOC','UNIT','HSP_ESTABLISHMENT','HSP_CERTIFICATE',
             'HSP_CERT_DESC','UPGRADED_LAST_3_YRS','UPGRADED_CERT_3_YRS','UPGRADED_CERT_DESC_3_YRS','MARRIED_WITHIN_2_YEARS',
             'DIVORCE_WITHIN_2_YEARS','DIVORCE_REMARRIED_WITHIN_2_YEARS','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR',
             'HOUSING_TYPE','HOUSING_GROUP','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','SVC_INJURY_TYPE']
+
+noisy_features = ['RANK_GRADE','RANK_GROUPING']
+features = [c for c in features if c not in noisy_features]
+features_non_numeric = [c for c in features_non_numeric if c not in noisy_features]
+
 # Load data
 train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
 test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
 
-# FEATURE ENGINEERING
-# Rank grouping
+# # FEATURE ENGINEERING
+# # Rank grouping
 train['Rank_1'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
 train['Rank_2'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
 test['Rank_1'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
@@ -88,36 +93,11 @@ test['Rank_2'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.
 features = features + ['Rank_1', 'Rank_2']
 features_non_numeric = features_non_numeric + ['Rank_1', 'Rank_2']
 
-# These are yes / no columns which might contain NaN that doesn't have a significant propotion of yes or no
-for col in ['UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR','MOVE_HOUSE_T_2','UPGRADED_LAST_3_YRS']:
-    train[col] = train[col].fillna('UNKNOWN')
-    test[col] = test[col].fillna('UNKNOWN')
-
-# SVC Injury Type
-train['SVC_INJURY_TYPE'] = train['SVC_INJURY_TYPE'].fillna(-1)
-test['SVC_INJURY_TYPE'] = test['SVC_INJURY_TYPE'].fillna(-1)
-
-# HSP_ESTABLISHMENT
-train['HSP_ESTABLISHMENT'] = train['HSP_ESTABLISHMENT'].fillna('NONE')
-test['HSP_ESTABLISHMENT'] = test['HSP_ESTABLISHMENT'].fillna('NONE')
-
-# HSP_CERTIFICATE
-train['HSP_CERTIFICATE'] = train['HSP_CERTIFICATE'].fillna('NONE')
-test['HSP_CERTIFICATE'] = test['HSP_CERTIFICATE'].fillna('NONE')
-
-# UPGRADED_CERT_DESC_3_YRS - this has too many values
-
-# HOUSING_TYPE
-train['HOUSING_TYPE'] = train['HOUSING_TYPE'].fillna('NONE')
-test['HOUSING_TYPE'] = test['HOUSING_TYPE'].fillna('NONE')
-
-# HOUSING_GROUP
-train['HOUSING_GROUP'] = train['HOUSING_GROUP'].fillna('NONE')
-test['HOUSING_GROUP'] = test['HOUSING_GROUP'].fillna('NONE')
-
-# PREV_HOUSING_TYPE
-train['PREV_HOUSING_TYPE'] = train['PREV_HOUSING_TYPE'].fillna('UNKNOWN')
-test['PREV_HOUSING_TYPE'] = test['PREV_HOUSING_TYPE'].fillna('UNKNOWN')
+# # Salary increment. Max to set = 100. It doesn't matter anyone getting more than this or not.
+train['TOT_PERC_INC_LAST_1_YR'] = train['TOT_PERC_INC_LAST_1_YR'].apply(lambda x: 100 if x > 100 else x)
+test['TOT_PERC_INC_LAST_1_YR'] = test['TOT_PERC_INC_LAST_1_YR'].apply(lambda x: 100 if x > 100 else x)
+train['BAS_PERC_INC_LAST_1_YR'] = train['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 100 if x > 100 else x)
+test['BAS_PERC_INC_LAST_1_YR'] = test['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 100 if x > 100 else x)
 
 # Fill NA
 train = DataFrameImputer().fit_transform(train)
@@ -140,31 +120,25 @@ for col in set(features)-set(features_non_numeric):
 # CLASSIFIERS DEFINED
 if sample:
     classifiers = [
-        # ExtraTreesClassifier(n_estimators=1024, max_features=None,
-        #                        oob_score=False, bootstrap=True, min_samples_leaf=1,
-        #                        min_samples_split=2, max_depth=19),
-        # RandomForestClassifier(n_estimators=1024, max_features=23,
-        #                        oob_score=False, bootstrap=True, min_samples_leaf=1,
-        #                        min_samples_split=2, max_depth=32), # 0.0186801022887
+        GradientBoostingClassifier(),
+        XGBClassifier(),
+        RandomForestClassifier(),
+        ExtraTreesClassifier()
+        # ExtraTreesClassifier(oob_score=True,bootstrap=True,min_samples_leaf=1,
+        #                      n_estimators=432,min_samples_split=1,max_features=29,max_depth=16), #0.0204004223355
+        # GradientBoostingClassifier(n_estimators=1000,max_depth=3,learning_rate=0.02), # 0.0165834057975
+        # XGBClassifier(n_estimators=719,subsample=1,max_depth=9,min_child_weight=3,learning_rate=0.01), # 0.0153317811336
         # RandomForestClassifier(n_estimators=512, max_features=16,
         #                        oob_score=True, bootstrap=True, min_samples_leaf=1,
-        #                        min_samples_split=2, max_depth=16), # 0.0175944236577
-        # XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7,learning_rate=0.1), # 0.0157303817854
-        # XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=8,learning_rate=0.05) # 0.0158848201319
-        # GradientBoostingClassifier(n_estimators=1000,max_depth=3,learning_rate=0.02,subsample=1), # 0.0166316915851
-        # GradientBoostingClassifier(),
-        # XGBClassifier(),
-        # RandomForestClassifier(),
-        # ExtraTreesClassifier()
+        #                        min_samples_split=2, max_depth=16), #0.0167591927224
     ]
 else:
     classifiers = [# Other methods are underperformed yet take very long training time for this data set
-        GradientBoostingClassifier(n_estimators=1000,max_depth=3,learning_rate=0.02),
+        GradientBoostingClassifier(n_estimators=1000,max_depth=3,learning_rate=0.02), # 0.0165834057975
         RandomForestClassifier(n_estimators=512, max_features=16,
                                oob_score=True, bootstrap=True, min_samples_leaf=1,
-                               min_samples_split=2, max_depth=16),
-        XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7,learning_rate=0.1),
-        XGBClassifier(n_estimators=512,subsample=1,max_depth=10,min_child_weight=8,learning_rate=0.05)
+                               min_samples_split=2, max_depth=16), #0.0167591927224
+        XGBClassifier(n_estimators=256,subsample=2,max_depth=16,min_child_weight=7,learning_rate=0.1) # 0.0156365191636
     ]
 
 # TRAINING / GRIDSEARCH

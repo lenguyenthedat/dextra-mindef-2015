@@ -77,6 +77,12 @@ test['Rank_2'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.
 features = features + ['Rank_1', 'Rank_2']
 features_non_numeric = features_non_numeric + ['Rank_1', 'Rank_2']
 
+# # Salary increment. Max to set = 100. It doesn't matter anyone getting more than this or not.
+train['TOT_PERC_INC_LAST_1_YR'] = train['TOT_PERC_INC_LAST_1_YR'].apply(lambda x: 100 if x > 100 else x)
+test['TOT_PERC_INC_LAST_1_YR'] = test['TOT_PERC_INC_LAST_1_YR'].apply(lambda x: 100 if x > 100 else x)
+train['BAS_PERC_INC_LAST_1_YR'] = train['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 100 if x > 100 else x)
+test['BAS_PERC_INC_LAST_1_YR'] = test['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 100 if x > 100 else x)
+
 # # These are yes / no columns which might contain NaN that doesn't have a significant propotion of yes or no
 # for col in ['UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR','MOVE_HOUSE_T_2','UPGRADED_LAST_3_YRS']:
 #     train[col] = train[col].fillna('UNKNOWN')
