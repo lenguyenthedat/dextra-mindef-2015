@@ -60,7 +60,7 @@ features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING'
             'DIVORCE_WITHIN_2_YEARS','DIVORCE_REMARRIED_WITHIN_2_YEARS','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR',
             'HOUSING_TYPE','HOUSING_GROUP','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','SVC_INJURY_TYPE']
 
-noisy_features = ['RANK_GRADE']
+noisy_features = ['RANK_GRADE','RANK_GROUPING']
 features = [c for c in features if c not in noisy_features]
 features_non_numeric = [c for c in features_non_numeric if c not in noisy_features]
 
@@ -70,12 +70,12 @@ test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv'
 
 # # FEATURE ENGINEERING
 # # Rank grouping
-# train['Rank_1'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
-# train['Rank_2'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
-# test['Rank_1'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
-# test['Rank_2'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
-# features = features + ['Rank_1', 'Rank_2']
-# features_non_numeric = features_non_numeric + ['Rank_1', 'Rank_2']
+train['Rank_1'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
+train['Rank_2'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
+test['Rank_1'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
+test['Rank_2'] = test['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
+features = features + ['Rank_1', 'Rank_2']
+features_non_numeric = features_non_numeric + ['Rank_1', 'Rank_2']
 
 # # These are yes / no columns which might contain NaN that doesn't have a significant propotion of yes or no
 # for col in ['UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR','MOVE_HOUSE_T_2','UPGRADED_LAST_3_YRS']:
