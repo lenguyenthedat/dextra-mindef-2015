@@ -31,7 +31,25 @@ XGBClassifier(n_estimators=256,subsample=0.5,max_depth=10,min_child_weight=3,lea
 XGBClassifier(n_estimators=256,subsample=0.5,max_depth=10,min_child_weight=3,learning_rate=0.05) 0.0193743
 XGBClassifier(n_estimators=2048,subsample=0.5,max_depth=10,min_child_weight=3,learning_rate=0.03) 0.0204512
 
+--- native xgb
+    xgbtrain = xgb.DMatrix(train[features], label=train[goal])
+    params = {}
+    params["objective"] = "multi:softprob"
+    params["num_class"] = 2
+    params["eval_metric"]="mlogloss"
+    params["eta"] = 0.05
+    params["min_child_weight"] = 3
+    params["subsample"] = 1
+    params["colsample_bytree"] = 0.6
+    #params["scale_pos_weight"] = 1.0
+    params["silent"] = 0
+    params["max_depth"] = 8
+    params["nthread"] = 4
+    plst = list(params.items())
+    num_rounds = 180
 
+Results: [0.01601425233360964, 0.020371078696600001, 0.010461164126409057, 0.014025222435671015, 0.014524528938030926]
+Mean: 0.0150792493061
 
 --- Hall of fucking fame:
 cv = cross_validation.KFold(len(train), n_folds=5, shuffle=True, indices=False, random_state=1337)
