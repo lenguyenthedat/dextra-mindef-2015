@@ -15,7 +15,7 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.base import TransformerMixin
 from sklearn import cross_validation
 
-sample = True
+sample = False
 
 goal = 'RESIGNED'
 myid = 'PERID'
@@ -106,22 +106,66 @@ test['BAS_PERC_INC_LAST_1_YR'] = test['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 
 # # UPGRADED_CERT_DESC_3_YRS - this has too many values
 def cert1(row):
   try:
-    return row['UPGRADED_CERT_DESC_3_YRS'].split('IN')[0]
+    cert = row['UPGRADED_CERT_DESC_3_YRS'].replace('(', ' ').replace(')', ' ')
+    if cert.startswith('B '):
+      return 'BACHELOR'
+    if 'BACHELOR' in cert:
+      return 'BACHELOR'
+    if 'BSC' in cert:
+      return 'BACHELOR'
+    if 'DIPLOMA' in cert:
+      return 'DIPLOMA'
+    if 'MASTER' in cert:
+      return 'MASTER'
+    if 'MSC' in cert:
+      return 'MSC'
+    if 'MBA' in cert:
+      return 'MBA'
+    return 'OTHERS'
   except:
     return 'OTHERS'
 
 def cert2(row):
   try:
-    return row['UPGRADED_CERT_DESC_3_YRS'].split('IN')[1]
+    cert = row['UPGRADED_CERT_DESC_3_YRS'].replace('(', ' ').replace(')', ' ')
+    return cert.split(' IN ')[1].split(' ')[0]
   except:
     return 'OTHERS'
-train['Cert_1'] = train.apply(cert1,axis=1)
-train['Cert_2'] = train.apply(cert1,axis=1)
-test['Cert_1'] = test.apply(cert2,axis=1)
-test['Cert_2'] = test.apply(cert2,axis=1)
 
-features = features + ['Cert_1', 'Cert_2']
-features_non_numeric = features_non_numeric + ['Cert_1', 'Cert_2']
+def cert3(row):
+  try:
+    cert = row['UPGRADED_CERT_DESC_3_YRS'].replace('(', ' ').replace(')', ' ')
+    if len(cert.split(' CLASS ')) > 1:
+      if cert.split(' CLASS ')[0].split()[-1] == '2ND':
+        return 'SECOND'
+      if cert.split(' CLASS ')[0].split()[-1] == 'LOWER':
+        return 'SECOND'
+      if cert.split(' CLASS ')[0].split()[-1] == '3RD':
+        return 'THIRD'
+      if cert.split(' CLASS ')[0].split()[-1] == 'WITH':
+        return 'OTHERS'
+      return cert.split(' CLASS ')[0].split()[-1]
+    else:
+      return 'OTHERS'
+  except:
+    return 'OTHERS'
+
+def cert4(row):
+  try:
+    return row['UPGRADED_CERT_DESC_3_YRS'].split(' IN ')[0].split('(')[0]
+  except:
+    return 'OTHERS'
+
+train['Cert_1'] = train.apply(cert1,axis=1)
+train['Cert_2'] = train.apply(cert2,axis=1)
+train['Cert_3'] = train.apply(cert3,axis=1)
+train['Cert_4'] = train.apply(cert4,axis=1)
+test['Cert_1'] = test.apply(cert1,axis=1)
+test['Cert_2'] = test.apply(cert2,axis=1)
+test['Cert_3'] = test.apply(cert3,axis=1)
+test['Cert_4'] = test.apply(cert4,axis=1)
+features = features + ['Cert_3','Cert_4']
+features_non_numeric = features_non_numeric + ['Cert_3','Cert_4']
 
 # # HOUSING_TYPE
 # train['HOUSING_TYPE'] = train['HOUSING_TYPE'].fillna('NONE')
