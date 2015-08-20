@@ -138,6 +138,9 @@ for col in set(features) - set(features_non_numeric) - \
     train[col] = scaler.transform(train[col])
     test[col] = scaler.transform(test[col])
 
+train_sal_change = train[train['TOT_PERC_INC_LAST_1_YR'] != 0]
+train_sal_no_change = train[train['TOT_PERC_INC_LAST_1_YR'] == 0]
+
 # XGB Params
 # params = {'max_depth':8, 'eta':0.05, 'silent':1,
 #           'objective':'multi:softprob', 'num_class':2, 'eval_metric':'mlogloss',
@@ -151,30 +154,38 @@ num_rounds = 990
 
 # TRAINING / GRIDSEARCH
 if sample:
-  cv = cross_validation.KFold(len(train), n_folds=5, shuffle=True, indices=False, random_state=1337)
-  results = []
-  for traincv, testcv in cv:
-      xgbtrain = xgb.DMatrix(train[traincv][list(features)], label=train[traincv][goal])
-      classifier = xgb.train(params, xgbtrain, num_rounds)
-      score = entropyloss(train[testcv][goal].values, np.compress([False, True],\
-          classifier.predict(xgb.DMatrix(train[testcv][features])), axis=1).flatten())
-      print score
-      results.append(score)
-  print "Results: " + str(results)
-  print "Mean: " + str(np.array(results).mean())
+  for train_set in [train_sal_change,train_sal_no_change]:
+    cv = cross_validation.KFold(len(train_set), n_folds=5, shuffle=True, indices=False, random_state=1337)
+    results = []
+    for traincv, testcv in cv:
+        xgbtrain = xgb.DMatrix(train_set[traincv][list(features)], label=train_set[traincv][goal])
+        classifier = xgb.train(params, xgbtrain, num_rounds)
+        score = entropyloss(train_set[testcv][goal].values, np.compress([False, True],\
+            classifier.predict(xgb.DMatrix(train_set[testcv][features])), axis=1).flatten())
+        print score
+        results.append(score)
+    print "Results: " + str(results)
+    print "Mean: " + str(np.array(results).mean())
 
 # EVAL OR EXPORT
 if not sample: # Export result
-    xgbtrain = xgb.DMatrix(train[features], label=train[goal])
-    classifier = xgb.train(params, xgbtrain, num_rounds)
+    xgbtrain_sal_change = xgb.DMatrix(train_sal_change[features], label=train_sal_change[goal])
+    classifier_sal_change = xgb.train(params, xgbtrain_sal_change, num_rounds)
+    xgbtrain_sal_no_change = xgb.DMatrix(train_sal_no_change[features], label=train_sal_no_change[goal])
+    classifier_sal_no_change = xgb.train(params, xgbtrain_sal_no_change, num_rounds)
     if not os.path.exists('result/'):
         os.makedirs('result/')
-    csvfile = 'result/' + classifier.__class__.__name__ + '-submit.csv'
+    csvfile = 'result/Booster-submit.csv'
     with open(csvfile, 'w') as output:
-        predictions = np.column_stack((test[myid], classifier.predict(xgb.DMatrix(test[features])))).tolist()
-        predictions = [[int(i[0])] + i[2:3] for i in predictions]
-        # National ServiceMen always resigned. lol.
-        predictions = [[x[0],1] if test[test[myid] == x[0]]['EMPLOYEE_GROUP'].item() == 2 else x for x in predictions]
-        writer = csv.writer(output, lineterminator='\n')
-        writer.writerow([myid,goal])
-        writer.writerows(predictions)
+      predictions = []
+      for i in test[myid].tolist():
+        # National ServiceMen always resigned
+        if test[test[myid] == i]['EMPLOYEE_GROUP'].item() == 2:
+          predictions += [[i,1]]
+        elif test[test[myid] == i]['TOT_PERC_INC_LAST_1_YR'].item() != 0:
+          predictions += [[i,classifier_sal_change.predict(xgb.DMatrix(test[test[myid]==i][features])).tolist()[0][1]]]
+        else:
+          predictions += [[i,classifier_sal_no_change.predict(xgb.DMatrix(test[test[myid]==i][features])).tolist()[0][1]]]
+      writer = csv.writer(output, lineterminator='\n')
+      writer.writerow([myid,goal])
+      writer.writerows(predictions)
