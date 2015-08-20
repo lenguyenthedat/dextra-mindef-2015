@@ -169,15 +169,12 @@ if not sample: # Export result
     classifier = xgb.train(params, xgbtrain, num_rounds)
     if not os.path.exists('result/'):
         os.makedirs('result/')
-    predictions = classifier.predict(xgb.DMatrix(test[features]))
-    try: # try to flatten a list that might be flattenable.
-        predictions = list(itertools.chain.from_iterable(predictions))
-    except:
-        pass
     csvfile = 'result/' + classifier.__class__.__name__ + '-submit.csv'
     with open(csvfile, 'w') as output:
         predictions = np.column_stack((test[myid], classifier.predict(xgb.DMatrix(test[features])))).tolist()
         predictions = [[int(i[0])] + i[2:3] for i in predictions]
+        # National ServiceMen always resigned. lol.
+        predictions = [[x[0],1] if test[test[myid] == x[0]]['EMPLOYEE_GROUP'].item() == 2 else x for x in predictions]
         writer = csv.writer(output, lineterminator='\n')
         writer.writerow([myid,goal])
         writer.writerows(predictions)
