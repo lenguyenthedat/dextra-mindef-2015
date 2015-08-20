@@ -60,7 +60,7 @@ features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING'
             'DIVORCE_WITHIN_2_YEARS','DIVORCE_REMARRIED_WITHIN_2_YEARS','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR',
             'HOUSING_TYPE','HOUSING_GROUP','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','SVC_INJURY_TYPE']
 
-noisy_features = ['RANK_GRADE','RANK_GROUPING']
+noisy_features = ['RANK_GRADE','RANK_GROUPING','UPGRADED_CERT_DESC_3_YRS']
 features = [c for c in features if c not in noisy_features]
 features_non_numeric = [c for c in features_non_numeric if c not in noisy_features]
 
@@ -104,6 +104,24 @@ test['BAS_PERC_INC_LAST_1_YR'] = test['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 
 # test['HSP_CERTIFICATE'] = test['HSP_CERTIFICATE'].fillna('NONE')
 
 # # UPGRADED_CERT_DESC_3_YRS - this has too many values
+def cert1(row):
+  try:
+    return row['UPGRADED_CERT_DESC_3_YRS'].split('IN')[0]
+  except:
+    return 'OTHERS'
+
+def cert2(row):
+  try:
+    return row['UPGRADED_CERT_DESC_3_YRS'].split('IN')[1]
+  except:
+    return 'OTHERS'
+train['Cert_1'] = train.apply(cert1,axis=1)
+train['Cert_2'] = train.apply(cert1,axis=1)
+test['Cert_1'] = test.apply(cert2,axis=1)
+test['Cert_2'] = test.apply(cert2,axis=1)
+
+features = features + ['Cert_1', 'Cert_2']
+features_non_numeric = features_non_numeric + ['Cert_1', 'Cert_2']
 
 # # HOUSING_TYPE
 # train['HOUSING_TYPE'] = train['HOUSING_TYPE'].fillna('NONE')
