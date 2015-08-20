@@ -136,10 +136,15 @@ for col in set(features) - set(features_non_numeric) - \
     test[col] = scaler.transform(test[col])
 
 # XGB Params
-params = {'max_depth':8, 'eta':0.05, 'silent':1,
-          'objective':'multi:softprob', 'num_class':2, 'eval_metric':'logloss',
-          'min_child_weight':3, 'subsample':1,'colsample_bytree':0.6, 'nthread':4}
-num_rounds = 180
+# params = {'max_depth':8, 'eta':0.05, 'silent':1,
+#           'objective':'multi:softprob', 'num_class':2, 'eval_metric':'mlogloss',
+#           'min_child_weight':3, 'subsample':1,'colsample_bytree':0.6, 'nthread':4}
+# num_rounds = 180
+params = {'max_depth':6, 'eta':0.01, 'silent':1,
+          'objective':'multi:softprob', 'num_class':2, 'eval_metric':'mlogloss',
+          'min_child_weight':3, 'subsample':1,'colsample_bytree':0.55, 'nthread':4}
+num_rounds = 990
+
 
 # TRAINING / GRIDSEARCH
 if sample:
