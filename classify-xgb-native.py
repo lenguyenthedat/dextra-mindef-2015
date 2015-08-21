@@ -6,16 +6,17 @@ import os
 import scipy as sp
 import xgboost as xgb
 import itertools
+import operator
 import warnings
 warnings.filterwarnings("ignore")
 
-from matplotlib.backends.backend_pdf import PdfPages
-from sklearn.metrics import make_scorer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.base import TransformerMixin
 from sklearn import cross_validation
+from matplotlib import pylab as plt
 
 sample = True
+plot = False
 
 goal = 'RESIGNED'
 myid = 'PERID'
@@ -184,3 +185,22 @@ if not sample: # Export result
         writer.writerow([myid,goal])
         writer.writerows(predictions)
         print str(datetime.datetime.now())
+    # Feature importance
+    if plot:
+      outfile = open('xgb.fmap', 'w')
+      i = 0
+      for feat in features:
+          outfile.write('{0}\t{1}\tq\n'.format(i, feat))
+          i = i + 1
+      outfile.close()
+      importance = classifier.get_fscore(fmap='xgb.fmap')
+      importance = sorted(importance.items(), key=operator.itemgetter(1))
+      df = pd.DataFrame(importance, columns=['feature', 'fscore'])
+      df['fscore'] = df['fscore'] / df['fscore'].sum()
+      # Plotitup
+      plt.figure()
+      df.plot()
+      df.plot(kind='barh', x='feature', y='fscore', legend=False, figsize=(20, 15))
+      plt.title('XGBoost Feature Importance')
+      plt.xlabel('relative importance')
+      plt.gcf().savefig('Feature_Importance_xgb.png')
