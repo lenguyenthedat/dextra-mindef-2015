@@ -61,7 +61,7 @@ features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING'
             'DIVORCE_WITHIN_2_YEARS','DIVORCE_REMARRIED_WITHIN_2_YEARS','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR',
             'HOUSING_TYPE','HOUSING_GROUP','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','SVC_INJURY_TYPE']
 
-noisy_features = ['RANK_GRADE','RANK_GROUPING','COUNTRY_OF_BIRTH','DIVORCE_WITHIN_2_YEARS',
+noisy_features = ['RANK_GRADE','RANK_GROUPING','COUNTRY_OF_BIRTH','DIVORCE_WITHIN_2_YEARS','HSP_CERT_DESC','UPGRADED_CERT_DESC_3_YRS',
                   'DIVORCE_REMARRIED_WITHIN_2_YEARS', 'UPGRADED_LAST_3_YRS', 'MARRIED_WITHIN_2_YEARS', 'MOVE_HOUSE_T_2',
                   'PROMO_LAST_5_YRS','PROMO_LAST_4_YRS','PROMO_LAST_3_YRS', 'PROMO_LAST_2_YRS','PROMO_LAST_1_YR']
 features = [c for c in features if c not in noisy_features]
@@ -155,6 +155,146 @@ test['BAS_PERC_INC_LAST_1_YR'] = test['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 
 # Fill NA
 train = DataFrameImputer().fit_transform(train)
 test = DataFrameImputer().fit_transform(test)
+
+# # CERT_DESC - jesus chris
+def hsp_cert_type (row):
+    if "ELECTRONIC" in row['HSP_CERT_DESC']:
+        return "ENG"
+    if "MECHATRONIC" in row['HSP_CERT_DESC']:
+        return "ENG"
+    if "ENGINEERING"in row['HSP_CERT_DESC']:
+        return "ENG"
+    if "MECHANICAL" in row['HSP_CERT_DESC']:
+        return "ENG"
+    if "BUSINESS" in row['HSP_CERT_DESC']:
+        return "BUS"
+    if "ECONOMIC" in row['HSP_CERT_DESC']:
+        return "ECON"
+    if "MANAGEMENT" in row['HSP_CERT_DESC']:
+        return "MANAGEMENT"
+    if "TECHNOLOGY" in row['HSP_CERT_DESC']:
+        return "TECH"
+    if "TECHNICIAN" in row['HSP_CERT_DESC']:
+        return "TECH"
+    if "ART" in row['HSP_CERT_DESC']:
+        return "ART"
+    if "SOCIAL" in row['HSP_CERT_DESC']:
+        return "SOCIAL"
+    if "BANKING" in row['HSP_CERT_DESC']:
+        return "BANK"
+    if "FINANCE" in row['HSP_CERT_DESC']:
+        return "BANK"
+    if "MEDIA" in row['HSP_CERT_DESC']:
+        return "MEDIA"
+    if "COMMUNICATION" in row['HSP_CERT_DESC']:
+        return "COMM"
+    if "COMPUT" in row['HSP_CERT_DESC']:
+        return "COMP"
+    if "INFORMATION S" in row['HSP_CERT_DESC']:
+        return "COMP"
+    if "ACCOUNT" in row['HSP_CERT_DESC']:
+        return "ACC"
+    if "LAW" in row['HSP_CERT_DESC']:
+        return "LAW"
+    if "HEALTH" in row['HSP_CERT_DESC']:
+        return "HEALTH"
+    if "MEDIC" in row['HSP_CERT_DESC']:
+        return "HEALTH"
+    if "NURS" in row['HSP_CERT_DESC']:
+        return "HEALTH"
+    if "NUTRITION" in row['HSP_CERT_DESC']:
+        return "HEALTH"
+    if "CHEMIST" in row['HSP_CERT_DESC']:
+        return "HEALTH"
+    if "DENTAL" in row['HSP_CERT_DESC']:
+        return "HEALTH"
+    if "PHARMA" in row['HSP_CERT_DESC']:
+        return "HEALTH"
+    if "MARKETING" in row['HSP_CERT_DESC']:
+        return "MARK"
+    if "DESIGN" in row['HSP_CERT_DESC']:
+        return "DESIGN"
+    if "PSYCHOLOGY" in row['HSP_CERT_DESC']:
+        return "PSY"
+    if "MATHEMATICS" in row['HSP_CERT_DESC']:
+        return "MATH"
+    if "ADMINISTRATION" in row['HSP_CERT_DESC']:
+        return "ADM"
+    return "OTHERS"
+train['hsp_cert_type'] = train.apply(hsp_cert_type, axis=1)
+test['hsp_cert_type'] = test.apply(hsp_cert_type, axis=1)
+features = features + ['hsp_cert_type']
+features_non_numeric = features_non_numeric + ['hsp_cert_type']
+
+def up_hsp_cert_type (row):
+    if "ELECTRONIC" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "ENG"
+    if "MECHATRONIC" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "ENG"
+    if "ENGINEERING"in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "ENG"
+    if "MECHANICAL" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "ENG"
+    if "BUSINESS" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "BUS"
+    if "ECONOMIC" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "ECON"
+    if "MANAGEMENT" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "MANAGEMENT"
+    if "TECHNOLOGY" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "TECH"
+    if "TECHNICIAN" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "TECH"
+    if "ART" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "ART"
+    if "SOCIAL" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "SOCIAL"
+    if "BANKING" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "BANK"
+    if "FINANCE" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "BANK"
+    if "MEDIA" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "MEDIA"
+    if "COMMUNICATION" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "COMM"
+    if "COMPUT" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "COMP"
+    if "INFORMATION S" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "COMP"
+    if "ACCOUNT" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "ACC"
+    if "LAW" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "LAW"
+    if "HEALTH" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "HEALTH"
+    if "MEDIC" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "HEALTH"
+    if "NURS" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "HEALTH"
+    if "NUTRITION" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "HEALTH"
+    if "CHEMIST" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "HEALTH"
+    if "DENTAL" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "HEALTH"
+    if "PHARMA" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "HEALTH"
+    if "MARKETING" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "MARK"
+    if "DESIGN" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "DESIGN"
+    if "PSYCHOLOGY" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "PSY"
+    if "MATHEMATICS" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "MATH"
+    if "ADMINISTRATION" in row['UPGRADED_CERT_DESC_3_YRS']:
+        return "ADM"
+    return "OTHERS"
+train['up_hsp_cert_type'] = train.apply(up_hsp_cert_type, axis=1)
+test['up_hsp_cert_type'] = test.apply(up_hsp_cert_type, axis=1)
+features = features + ['up_hsp_cert_type']
+features_non_numeric = features_non_numeric + ['up_hsp_cert_type']
+
 
 # Pre-processing non-number values
 le = LabelEncoder()
