@@ -15,7 +15,7 @@ from sklearn.base import TransformerMixin
 from sklearn import cross_validation
 from matplotlib import pylab as plt
 
-sample = True
+sample = False
 plot = True
 
 goal = 'RESIGNED'
@@ -178,10 +178,10 @@ for col in set(features) - set(features_non_numeric) - \
 #           'objective':'multi:softprob', 'num_class':2, 'eval_metric':'mlogloss',
 #           'min_child_weight':3, 'subsample':1,'colsample_bytree':0.6, 'nthread':4}
 # num_rounds = 180
-params = {'max_depth':6, 'eta':0.01, 'silent':1,
-          'objective':'multi:softprob', 'num_class':2, 'eval_metric':'mlogloss',
-          'min_child_weight':3, 'subsample':1,'colsample_bytree':0.55, 'nthread':4}
-num_rounds = 990
+params = {'max_depth':7, 'eta':0.01, 'silent':1,
+          'objective':'binary:logistic', 'eval_metric':'mlogloss',
+          'min_child_weight':2, 'subsample':1,'colsample_bytree':0.55, 'nthread':4}
+num_rounds = 1100
 
 
 # TRAINING / GRIDSEARCH
@@ -191,8 +191,8 @@ if sample:
     for traincv, testcv in cv:
         xgbtrain = xgb.DMatrix(train[traincv][list(features)], label=train[traincv][goal])
         classifier = xgb.train(params, xgbtrain, num_rounds)
-        score = entropyloss(train[testcv][goal].values, np.compress([False, True],\
-            classifier.predict(xgb.DMatrix(train[testcv][features])), axis=1).flatten())
+        score = entropyloss(train[testcv][goal].values, \
+            classifier.predict(xgb.DMatrix(train[testcv][features])))
         print score
         results.append(score)
     print "Results: " + str(results)
@@ -214,7 +214,7 @@ if not sample: # Export result
           if test[test[myid] == i]['EMPLOYEE_GROUP'].item() == 2:
             predictions += [[i,1]]
           else:
-            predictions += [[i,classifier.predict(xgb.DMatrix(test[test[myid]==i][features])).tolist()[0][1]]]
+            predictions += [[i,classifier.predict(xgb.DMatrix(test[test[myid]==i][features]))[0]]]
         writer = csv.writer(output, lineterminator='\n')
         writer.writerow([myid,goal])
         writer.writerows(predictions)
