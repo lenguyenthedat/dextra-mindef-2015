@@ -62,7 +62,8 @@ features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING'
             'HOUSING_TYPE','HOUSING_GROUP','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','SVC_INJURY_TYPE']
 
 noisy_features = ['RANK_GRADE','RANK_GROUPING','COUNTRY_OF_BIRTH','DIVORCE_WITHIN_2_YEARS',
-                  'DIVORCE_REMARRIED_WITHIN_2_YEARS', 'UPGRADED_LAST_3_YRS', 'MARRIED_WITHIN_2_YEARS', 'MOVE_HOUSE_T_2']
+                  'DIVORCE_REMARRIED_WITHIN_2_YEARS', 'UPGRADED_LAST_3_YRS', 'MARRIED_WITHIN_2_YEARS', 'MOVE_HOUSE_T_2',
+                  'PROMO_LAST_5_YRS','PROMO_LAST_4_YRS','PROMO_LAST_3_YRS', 'PROMO_LAST_2_YRS','PROMO_LAST_1_YR']
 features = [c for c in features if c not in noisy_features]
 features_non_numeric = [c for c in features_non_numeric if c not in noisy_features]
 
@@ -71,6 +72,32 @@ train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
 test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
 
 # # FEATURE ENGINEERING
+# # Gender and promotion
+train['promo1_gender'] = train['PROMO_LAST_1_YR'].map(str) + train['GENDER']
+test['promo1_gender'] = test['PROMO_LAST_1_YR'].map(str) + test['GENDER']
+features = features + ['promo1_gender']
+features_non_numeric = features_non_numeric + ['promo1_gender']
+
+train['promo2_gender'] = train['PROMO_LAST_2_YRS'].map(str) + train['GENDER']
+test['promo2_gender'] = test['PROMO_LAST_2_YRS'].map(str) + test['GENDER']
+features = features + ['promo2_gender']
+features_non_numeric = features_non_numeric + ['promo2_gender']
+
+train['promo3_gender'] = train['PROMO_LAST_3_YRS'].map(str) + train['GENDER']
+test['promo3_gender'] = test['PROMO_LAST_3_YRS'].map(str) + test['GENDER']
+features = features + ['promo3_gender']
+features_non_numeric = features_non_numeric + ['promo3_gender']
+
+train['promo4_gender'] = train['PROMO_LAST_4_YRS'].map(str) + train['GENDER']
+test['promo4_gender'] = test['PROMO_LAST_4_YRS'].map(str) + test['GENDER']
+features = features + ['promo4_gender']
+features_non_numeric = features_non_numeric + ['promo4_gender']
+
+train['promo5_gender'] = train['PROMO_LAST_5_YRS'].map(str) + train['GENDER']
+test['promo5_gender'] = test['PROMO_LAST_5_YRS'].map(str) + test['GENDER']
+features = features + ['promo5_gender']
+features_non_numeric = features_non_numeric + ['promo5_gender']
+
 # # Age and Gender
 train['age_gender'] = train['GENDER'].map(str) + train['AGE_GROUPING']
 test['age_gender'] = test['GENDER'].map(str) + test['AGE_GROUPING']
