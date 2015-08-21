@@ -1,5 +1,5 @@
 import pandas as pd
-import time
+import datetime
 import csv
 import numpy as np
 import os
@@ -165,16 +165,22 @@ if sample:
 
 # EVAL OR EXPORT
 if not sample: # Export result
+    print str(datetime.datetime.now())
     xgbtrain = xgb.DMatrix(train[features], label=train[goal])
     classifier = xgb.train(params, xgbtrain, num_rounds)
     if not os.path.exists('result/'):
         os.makedirs('result/')
     csvfile = 'result/' + classifier.__class__.__name__ + '-submit.csv'
     with open(csvfile, 'w') as output:
-        predictions = np.column_stack((test[myid], classifier.predict(xgb.DMatrix(test[features])))).tolist()
-        predictions = [[int(i[0])] + i[2:3] for i in predictions]
-        # National ServiceMen always resigned. lol.
-        predictions = [[x[0],1] if test[test[myid] == x[0]]['EMPLOYEE_GROUP'].item() == 2 else x for x in predictions]
+        predictions = []
+        print str(datetime.datetime.now())
+        for i in test[myid].tolist():
+          # National ServiceMen always resigned
+          if test[test[myid] == i]['EMPLOYEE_GROUP'].item() == 2:
+            predictions += [[i,1]]
+          else:
+            predictions += [[i,classifier.predict(xgb.DMatrix(test[test[myid]==i][features])).tolist()[0][1]]]
         writer = csv.writer(output, lineterminator='\n')
         writer.writerow([myid,goal])
         writer.writerows(predictions)
+        print str(datetime.datetime.now())
