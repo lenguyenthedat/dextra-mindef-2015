@@ -1,12 +1,7 @@
 Native XGBoost just dominated everything.
 
 1) 0.0171364
-params = {'max_depth':6, 'eta':0.01, 'silent':1,
-          'objective':'multi:softprob', 'num_class':2, 'eval_metric':'mlogloss',
-          'min_child_weight':3, 'subsample':1,'colsample_bytree':0.55, 'nthread':4}
-num_rounds = 990
-
-$ python classify-xgb-native.py
+$ python classify-xgb-native.py # 990r depth6
 0.0155765992602
 0.019516592639
 0.00988590074655
@@ -24,3 +19,13 @@ $ python classify-xgb-native.py # 180r
 0.0139117869773
 Results: [0.01577263890161577, 0.020164597910677044, 0.0095532522596954699, 0.013888759618006124, 0.013911786977273863]
 Mean: 0.0146582071335
+
+3) 0.0171475
+$ python classify-xgb-native.py #added age_gender, rm a bunch of features
+0.015551655811
+0.019148557532
+0.00965389534226
+0.0139233429833
+0.0139280448029
+Results: [0.015551655810998924, 0.019148557531997155, 0.0096538953422591212, 0.013923342983307932, 0.013928044802880669]
+Mean: 0.0144410992943

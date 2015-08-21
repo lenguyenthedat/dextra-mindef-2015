@@ -16,7 +16,7 @@ from sklearn import cross_validation
 from matplotlib import pylab as plt
 
 sample = True
-plot = False
+plot = True
 
 goal = 'RESIGNED'
 myid = 'PERID'
@@ -61,7 +61,8 @@ features_non_numeric = ['GENDER','COUNTRY_OF_BIRTH','NATIONALITY','AGE_GROUPING'
             'DIVORCE_WITHIN_2_YEARS','DIVORCE_REMARRIED_WITHIN_2_YEARS','UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR',
             'HOUSING_TYPE','HOUSING_GROUP','PREV_HOUSING_TYPE','MOVE_HOUSE_T_2','SVC_INJURY_TYPE']
 
-noisy_features = ['RANK_GRADE','RANK_GROUPING']
+noisy_features = ['RANK_GRADE','RANK_GROUPING','COUNTRY_OF_BIRTH','DIVORCE_WITHIN_2_YEARS',
+                  'DIVORCE_REMARRIED_WITHIN_2_YEARS', 'UPGRADED_LAST_3_YRS', 'MARRIED_WITHIN_2_YEARS', 'MOVE_HOUSE_T_2']
 features = [c for c in features if c not in noisy_features]
 features_non_numeric = [c for c in features_non_numeric if c not in noisy_features]
 
@@ -70,6 +71,12 @@ train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
 test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
 
 # # FEATURE ENGINEERING
+# # Age and Gender
+train['age_gender'] = train['GENDER'].map(str) + train['AGE_GROUPING']
+test['age_gender'] = test['GENDER'].map(str) + test['AGE_GROUPING']
+features = features + ['age_gender']
+features_non_numeric = features_non_numeric + ['age_gender']
+
 # # Rank grouping
 train['Rank_1'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[0])
 train['Rank_2'] = train['RANK_GROUPING'].apply(lambda x: x.split(' ')[1] if len(x.split(' ')) > 1 else '')
