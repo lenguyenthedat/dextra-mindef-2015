@@ -68,8 +68,8 @@ features = [c for c in features if c not in noisy_features]
 features_non_numeric = [c for c in features_non_numeric if c not in noisy_features]
 
 # Load data
-train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv')
-test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv')
+train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv', dtype={'SVC_INJURY_TYPE':np.str})
+test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv', dtype={'SVC_INJURY_TYPE':np.str})
 
 # # FEATURE ENGINEERING
 # # Gender and promotion
@@ -117,40 +117,6 @@ train['TOT_PERC_INC_LAST_1_YR'] = train['TOT_PERC_INC_LAST_1_YR'].apply(lambda x
 test['TOT_PERC_INC_LAST_1_YR'] = test['TOT_PERC_INC_LAST_1_YR'].apply(lambda x: 101 if x > 101 else x)
 train['BAS_PERC_INC_LAST_1_YR'] = train['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 101 if x > 101 else x)
 test['BAS_PERC_INC_LAST_1_YR'] = test['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 101 if x > 101 else x)
-
-# train['HOMETOWORKDIST'] = train['HOMETOWORKDIST'].apply(lambda x: 18 if x == 0 else x)
-# test['HOMETOWORKDIST'] = test['HOMETOWORKDIST'].apply(lambda x: 18 if x == 0 else x)
-
-# # These are yes / no columns which might contain NaN that doesn't have a significant propotion of yes or no
-# for col in ['UNIT_CHG_LAST_3_YRS','UNIT_CHG_LAST_2_YRS','UNIT_CHG_LAST_1_YR','MOVE_HOUSE_T_2','UPGRADED_LAST_3_YRS']:
-#     train[col] = train[col].fillna('UNKNOWN')
-#     test[col] = test[col].fillna('UNKNOWN')
-
-# # SVC Injury Type
-# train['SVC_INJURY_TYPE'] = train['SVC_INJURY_TYPE'].fillna(-1)
-# test['SVC_INJURY_TYPE'] = test['SVC_INJURY_TYPE'].fillna(-1)
-
-# # HSP_ESTABLISHMENT
-# train['HSP_ESTABLISHMENT'] = train['HSP_ESTABLISHMENT'].fillna('NONE')
-# test['HSP_ESTABLISHMENT'] = test['HSP_ESTABLISHMENT'].fillna('NONE')
-
-# # HSP_CERTIFICATE
-# train['HSP_CERTIFICATE'] = train['HSP_CERTIFICATE'].fillna('NONE')
-# test['HSP_CERTIFICATE'] = test['HSP_CERTIFICATE'].fillna('NONE')
-
-# # UPGRADED_CERT_DESC_3_YRS - this has too many values
-
-# # HOUSING_TYPE
-# train['HOUSING_TYPE'] = train['HOUSING_TYPE'].fillna('NONE')
-# test['HOUSING_TYPE'] = test['HOUSING_TYPE'].fillna('NONE')
-
-# # HOUSING_GROUP
-# train['HOUSING_GROUP'] = train['HOUSING_GROUP'].fillna('NONE')
-# test['HOUSING_GROUP'] = test['HOUSING_GROUP'].fillna('NONE')
-
-# # PREV_HOUSING_TYPE
-# train['PREV_HOUSING_TYPE'] = train['PREV_HOUSING_TYPE'].fillna('UNKNOWN')
-# test['PREV_HOUSING_TYPE'] = test['PREV_HOUSING_TYPE'].fillna('UNKNOWN')
 
 # Fill NA
 train = DataFrameImputer().fit_transform(train)
