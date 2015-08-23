@@ -68,8 +68,8 @@ features = [c for c in features if c not in noisy_features]
 features_non_numeric = [c for c in features_non_numeric if c not in noisy_features]
 
 # Load data
-train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv', dtype={'SVC_INJURY_TYPE':np.str})
-test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv', dtype={'SVC_INJURY_TYPE':np.str})
+train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv', dtype={'SVC_INJURY_TYPE':np.str,'MIN_CHILD_AGE':np.str})
+test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv', dtype={'SVC_INJURY_TYPE':np.str,'MIN_CHILD_AGE':np.str})
 
 # # FEATURE ENGINEERING
 # # Gender and promotion
@@ -118,6 +118,15 @@ test['TOT_PERC_INC_LAST_1_YR'] = test['TOT_PERC_INC_LAST_1_YR'].apply(lambda x: 
 train['BAS_PERC_INC_LAST_1_YR'] = train['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 101 if x > 101 else x)
 test['BAS_PERC_INC_LAST_1_YR'] = test['BAS_PERC_INC_LAST_1_YR'].apply(lambda x: 101 if x > 101 else x)
 
+# # Min Child Age
+def mca(row):
+    if row['NO_OF_KIDS'] == 0:
+        return '35'
+    else:
+        return row['MIN_CHILD_AGE']
+train['MIN_CHILD_AGE'] = train.apply(mca,axis=1)
+test['MIN_CHILD_AGE'] = test.apply(mca,axis=1)
+
 # Fill NA
 train = DataFrameImputer().fit_transform(train)
 test = DataFrameImputer().fit_transform(test)
@@ -133,7 +142,7 @@ for col in features_non_numeric:
 scaler = StandardScaler()
 for col in set(features) - set(features_non_numeric) - \
   set(['TOT_PERC_INC_LAST_1_YR','BAS_PERC_INC_LAST_1_YR','AGE',
-       'YEARS_IN_GRADE', 'YEARS_OF_SERVICE', 'NO_OF_KIDS', 'MIN_CHILD_AGE',
+       'YEARS_IN_GRADE', 'YEARS_OF_SERVICE', 'NO_OF_KIDS',
        'AVE_CHILD_AGE','HSP_CERT_RANK','HOUSING_RANK']):
     scaler.fit(list(train[col])+list(test[col]))
     train[col] = scaler.transform(train[col])
