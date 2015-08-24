@@ -1,5 +1,6 @@
 Ministry of Defence Data Analytics Challenge
 ============================================
+![img](http://i.imgur.com/TSTPnaI.png)
 
 Challenge URL: https://challenges.dextra.sg/challenge/44
 
@@ -9,9 +10,18 @@ Libraries used: Scikit-Learn, Pandas, XGBoost, Mathplotlib
 
 Scores:
 -------
-0.0169515: best Single XGBoost model
+[Public Leader Board (5th/158 Participants)](https://challenges.dextra.sg/challenge/44)
 
-0.0168939: blending multiple XGBoost models with different Features Set.
+- 0.0169515: best Single XGBoost model
+- 0.0168939: blending multiple XGBoost models with different Features Set.
+
+[Private Leader Board (1st/158 Participants)](http://www.dextra.sg/mindef-challenge-results/)
+
+- 0.0141351 
+
+Feature Importance:
+-------------------
+![img](https://raw.githubusercontent.com/lenguyenthedat/dextra-mindef-2015/master/Feature_Importance_xgb.png)
 
 Submission History (only the best one):
 ---------------------------------------
