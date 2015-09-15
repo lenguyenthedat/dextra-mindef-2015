@@ -2,9 +2,9 @@ Ministry of Defence Data Analytics Challenge
 ============================================
 ![img](http://i.imgur.com/TSTPnaI.png)
 
-Challenge URL: https://challenges.dextra.sg/challenge/44
+Challenge URL: http://www.dextra.sg/ministry-of-defence-data-analytics-challenge/
 
-Quick analysis with Tableau Public: https://public.tableau.com/profile/le.nguyen.the.dat#!/vizhome/MINDEFDataScienceChallenge2015/MINDEFDataScienceChallenge2015
+Quick analysis with Tableau Public [Removed due to non-disclosure agreement] 
 
 Libraries used: Scikit-Learn, Pandas, XGBoost, Mathplotlib
 
@@ -18,10 +18,6 @@ Scores:
 [Private Leader Board (1st/158 Participants)](http://www.dextra.sg/mindef-challenge-results/)
 
 - 0.0141351 
-
-Feature Importance:
--------------------
-![img](https://raw.githubusercontent.com/lenguyenthedat/dextra-mindef-2015/master/Feature_Importance_xgb.png)
 
 Submission History (only the best one):
 ---------------------------------------
