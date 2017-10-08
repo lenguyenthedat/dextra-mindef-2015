@@ -33,8 +33,8 @@ def load_data():
     """
         Load data and specified features of the data sets
     """
-    train = pd.read_csv('./data/20150803115609-HR_Retention_2013_training.csv', dtype={'SVC_INJURY_TYPE':np.str,'MIN_CHILD_AGE':np.str})
-    test = pd.read_csv('./data/20150803115608-HR_Retention_2013_to_be_predicted.csv', dtype={'SVC_INJURY_TYPE':np.str,'MIN_CHILD_AGE':np.str})
+    train = pd.read_csv('./data/train-sample.csv', dtype={'SVC_INJURY_TYPE':np.str,'MIN_CHILD_AGE':np.str})
+    test = pd.read_csv('./data/test-sample.csv', dtype={'SVC_INJURY_TYPE':np.str,'MIN_CHILD_AGE':np.str})
     features = test.columns.tolist()
     numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
     features_numeric = test.select_dtypes(include=numerics).columns.tolist()
