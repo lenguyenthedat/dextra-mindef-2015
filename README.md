@@ -2,6 +2,8 @@ Ministry of Defence Data Analytics Challenge
 ============================================
 ![img](http://i.imgur.com/TSTPnaI.png)
 
+**Note**: A few people asked me for the challenge's data source. Unfortunately, I am not authorized to publicly release it - if you need it, please do send the request to either Mindef or Dextra.sg instead of sending it to me.
+
 Challenge URL: http://www.dextra.sg/ministry-of-defence-data-analytics-challenge/
 
 Quick analysis with Tableau Public [Removed due to non-disclosure agreement] 
