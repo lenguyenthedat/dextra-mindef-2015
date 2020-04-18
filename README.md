@@ -1,6 +1,8 @@
 Ministry of Defence Data Analytics Challenge
 ============================================
-![img](http://i.imgur.com/TSTPnaI.png)
+![img](https://github.com/lenguyenthedat/dextra-mindef-2015/blob/master/data/Challenge%20Banner.png?raw=true)
+
+![img](https://github.com/lenguyenthedat/dextra-mindef-2015/blob/master/data/Winning%20Team.png?raw=true)
 
 **Note**: A few people asked me for the challenge's data source. Unfortunately, I am not authorized to publicly release it - if you need it, please do send the request to either Mindef or Dextra.sg instead of sending it to me.
 
